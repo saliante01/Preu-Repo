@@ -1,94 +1,140 @@
-Estructura de carpetas recomendadas
+This is a template for folder structure
 
 src/
 └── main/
 └── java/
 └── com.backend.backendpreu/
 ├── BackendPreuApplication.java
+│
 ├── config/
 │   ├── security/
 │   │   ├── SecurityConfig.java
-│   │   └── RoleConfig.java
+│   │   └── JwtConfig.java
 │   ├── database/
 │   │   └── DatabaseConfig.java
 │   └── AppConfig.java
 │
 ├── auth/
-│   ├── AuthController.java
-│   ├── AuthService.java
-│   ├── AuthDTO.java
-│   └── AuthFilter.java
+│   ├── controller/
+│   │   └── AuthController.java
+│   ├── service/
+│   │   └── AuthService.java
+│   ├── model/
+│   │   ├── LoginRequest.java
+│   │   └── AuthResponse.java
+│   └── security/
+│       └── JwtAuthFilter.java
 │
 ├── users/
-│   ├── UserController.java
-│   ├── UserService.java
-│   ├── UserRepository.java
-│   ├── User.java
-│   └── UserDTO.java
+│   ├── controller/
+│   │   └── UserController.java
+│   ├── service/
+│   │   └── UserService.java
+│   ├── repository/
+│   │   └── UserRepository.java
+│   ├── model/
+│   │   ├── User.java
+│   │   └── UserDTO.java
+│   └── mapper/
+│       └── UserMapper.java
 │
 ├── courses/
-│   ├── CourseController.java
-│   ├── CourseService.java
-│   ├── CourseRepository.java
-│   ├── Course.java
-│   ├── AcademicPeriod.java
-│   ├── CourseParticipation.java
-│   └── CourseDTO.java
+│   ├── controller/
+│   │   └── CourseController.java
+│   ├── service/
+│   │   └── CourseService.java
+│   ├── repository/
+│   │   ├── CourseRepository.java
+│   │   ├── AcademicPeriodRepository.java
+│   │   └── CourseParticipationRepository.java
+│   ├── model/
+│   │   ├── Course.java
+│   │   ├── AcademicPeriod.java
+│   │   └── CourseParticipation.java
+│   └── dto/
+│       └── CourseDTO.java
 │
 ├── meetings/
-│   ├── MeetingController.java
-│   ├── MeetingService.java
-│   ├── MeetingRepository.java
-│   ├── Meeting.java
-│   ├── Attendance.java
-│   └── MeetingDTO.java
+│   ├── controller/
+│   │   └── MeetingController.java
+│   ├── service/
+│   │   └── MeetingService.java
+│   ├── repository/
+│   │   ├── MeetingRepository.java
+│   │   └── AttendanceRepository.java
+│   ├── model/
+│   │   ├── Meeting.java
+│   │   └── Attendance.java
+│   └── dto/
+│       └── MeetingDTO.java
 │
 ├── contents/
-│   ├── ContentController.java
-│   ├── ContentService.java
-│   ├── ContentRepository.java
-│   ├── Content.java
-│   └── ContentDTO.java
+│   ├── controller/
+│   │   └── ContentController.java
+│   ├── service/
+│   │   └── ContentService.java
+│   ├── repository/
+│   │   └── ContentRepository.java
+│   ├── model/
+│   │   └── Content.java
+│   └── dto/
+│       └── ContentDTO.java
 │
 ├── evaluations/
-│   ├── EvaluationController.java
-│   ├── EvaluationService.java
-│   ├── EvaluationRepository.java
-│   ├── Evaluation.java
-│   ├── Grade.java
-│   └── EvaluationDTO.java
+│   ├── controller/
+│   │   └── EvaluationController.java
+│   ├── service/
+│   │   └── EvaluationService.java
+│   ├── repository/
+│   │   ├── EvaluationRepository.java
+│   │   └── GradeRepository.java
+│   ├── model/
+│   │   ├── Evaluation.java
+│   │   └── Grade.java
+│   └── dto/
+│       └── EvaluationDTO.java
 │
 ├── payments/
-│   ├── PaymentController.java
-│   ├── PaymentService.java
-│   ├── PaymentRepository.java
-│   ├── Payment.java
-│   └── PaymentDTO.java
+│   ├── controller/
+│   │   └── PaymentController.java
+│   ├── service/
+│   │   └── PaymentService.java
+│   ├── repository/
+│   │   └── PaymentRepository.java
+│   ├── model/
+│   │   └── Payment.java
+│   └── dto/
+│       └── PaymentDTO.java
 │
 ├── notifications/
-│   ├── NotificationController.java
-│   ├── NotificationService.java
-│   ├── NotificationRepository.java
-│   ├── Notification.java
-│   ├── NotificationTarget.java
-│   ├── NotificationDelivery.java
-│   └── NotificationDTO.java
+│   ├── controller/
+│   │   └── NotificationController.java
+│   ├── service/
+│   │   └── NotificationService.java
+│   ├── repository/
+│   │   ├── NotificationRepository.java
+│   │   ├── NotificationTargetRepository.java
+│   │   └── NotificationDeliveryRepository.java
+│   ├── model/
+│   │   ├── Notification.java
+│   │   ├── NotificationTarget.java
+│   │   └── NotificationDelivery.java
+│   └── dto/
+│       └── NotificationDTO.java
 │
 ├── audit/
-│   ├── AuditLog.java
-│   ├── AuditRepository.java
-│   └── AuditService.java
+│   ├── service/
+│   │   └── AuditService.java
+│   ├── repository/
+│   │   └── AuditLogRepository.java
+│   └── model/
+│       └── AuditLog.java
 │
 ├── common/
 │   ├── enums/
-│   │   ├── Role.java
-│   │   ├── UserStatus.java
-│   │   ├── PaymentStatus.java
-│   │   └── NotificationType.java
-│   │
 │   ├── exceptions/
-│   ├── utils/
-│   └── dto/
+│   ├── dto/
+│   └── utils/
 │
 └── database/
 ├── migrations/
