@@ -1,10 +1,12 @@
 package com.backend.backendpreu.academicPeriod.model;
 import com.backend.backendpreu.courses.model.Course;
+import com.backend.backendpreu.meetings.model.Meeting;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "academic_periods")
@@ -55,6 +57,9 @@ public class AcademicPeriod {
         createdAt = OffsetDateTime.now();
         updatedAt = OffsetDateTime.now();
     }
+
+    @OneToMany(mappedBy = "academicPeriod")
+    private List<Meeting> meetings;
 
     @PreUpdate
     protected void onUpdate() {
