@@ -1,4 +1,5 @@
 package com.backend.backendpreu.academicPeriod.model;
+
 import com.backend.backendpreu.courses.model.Course;
 import com.backend.backendpreu.meetings.model.Meeting;
 import jakarta.persistence.*;
@@ -8,6 +9,16 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+/**
+ * Represents a concrete execution of a course within a defined time range.
+ *
+ * <p>An {@code AcademicPeriod} defines when a {@link Course} is offered,
+ * its current lifecycle state, and serves as the central aggregation point
+ * for all academic activities.</p>
+ *
+ * <p>All operational entities such as meetings, evaluations, content,
+ * enrollments and payments are associated with an academic period.</p>
+ */
 @Entity
 @Table(name = "academic_periods")
 @Data
@@ -21,45 +32,55 @@ public class AcademicPeriod {
     private Long id;
 
     /**
-     * Curso base asociado (ej: Matemática)
+     * Base course associated with this academic period.
      */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
     /**
-     * Fecha de inicio del período académico
+     * Start date of the academic period.
      */
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
     /**
-     * Fecha de término del período académico
+     * End date of the academic period.
      */
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
     /**
-     * Estado del período (ACTIVE / CLOSED)
+     * Current lifecycle status of the academic period.
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AcademicPeriodStatus status;
 
+    /**
+     * Timestamp when the academic period was created.
+     */
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    /**
+     * Timestamp of the last update.
+     */
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    /**
+     * Academic sessions (classes, reinforcement sessions) associated
+     * with this academic period.
+     */
+    @OneToMany(mappedBy = "academicPeriod")
+    private List<Meeting> meetings;
 
     @PrePersist
     protected void onCreate() {
         createdAt = OffsetDateTime.now();
         updatedAt = OffsetDateTime.now();
     }
-
-    @OneToMany(mappedBy = "academicPeriod")
-    private List<Meeting> meetings;
 
     @PreUpdate
     protected void onUpdate() {
