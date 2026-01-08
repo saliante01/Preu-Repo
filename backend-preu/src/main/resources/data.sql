@@ -1,0 +1,2 @@
+INSERT INTO users (id, email, password_hash, role, active, created_at, first_name, last_name)
+VALUES (1, 'admin@preu.cl', '$2a$12$A/G3/2lOyD646SpaYc1we.C.WytRrENQoHXQSJbaPk1qYFqZ/Yu0q', 'ADMIN', true, CURRENT_TIMESTAMP, 'Admin', 'Sistema');
