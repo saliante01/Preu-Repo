@@ -3,6 +3,7 @@ package com.backend.backendpreu.auth.service;
 import com.backend.backendpreu.audit.service.AuditLogService;
 import com.backend.backendpreu.auth.dto.AuthResponseDTO;
 import com.backend.backendpreu.auth.dto.LoginRequestDTO;
+import com.backend.backendpreu.auth.dto.UserSummaryDTO;
 import com.backend.backendpreu.auth.security.JwtService;
 import com.backend.backendpreu.users.model.Role;
 import com.backend.backendpreu.users.model.User;
@@ -11,7 +12,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -148,5 +154,96 @@ class AuthServiceTest {
                 eq("USER"),
                 eq(1L)
         );
+    }
+
+    @Test
+    void getAuthenticatedUser_success() {
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getPrincipal()).thenReturn("somePrincipal");
+        when(authentication.getName()).thenReturn("admin@preu.cl");
+
+
+        when(userRepository.findByEmail("admin@preu.cl"))
+                .thenReturn(Optional.of(activeUser));
+
+
+        UserSummaryDTO result = authService.getAuthenticatedUser();
+
+
+        assertNotNull(result);
+        assertEquals("admin@preu.cl", result.getEmail());
+        assertEquals("Admin", result.getFirstName());
+        assertEquals("ADMIN", result.getRole());
+    }
+
+    @Test
+    void getAuthenticatedUser_notAuthenticated_throwsException() {
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(null);
+        SecurityContextHolder.setContext(securityContext);
+
+
+        ResponseStatusException ex = assertThrows(
+                ResponseStatusException.class,
+                () -> authService.getAuthenticatedUser()
+        );
+
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+        assertEquals("User not authenticated", ex.getReason());
+    }
+
+    @Test
+    void getAuthenticatedUser_anonymousUser_throwsException() {
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(authentication.isAuthenticated()).thenReturn(true);
+
+        when(authentication.getPrincipal()).thenReturn("anonymousUser");
+
+        ResponseStatusException ex = assertThrows(
+                ResponseStatusException.class,
+                () -> authService.getAuthenticatedUser()
+        );
+
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+    }
+
+    @Test
+    void getAuthenticatedUser_userNotFoundInDb_throwsException() {
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getPrincipal()).thenReturn("validUser");
+        when(authentication.getName()).thenReturn("unknown@preu.cl");
+
+        when(userRepository.findByEmail("unknown@preu.cl"))
+                .thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(
+                ResponseStatusException.class,
+                () -> authService.getAuthenticatedUser()
+        );
+
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+        assertEquals("User not found", ex.getReason());
     }
 }

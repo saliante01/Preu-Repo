@@ -2,8 +2,13 @@ package com.backend.backendpreu.users.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a system user within the academic intranet platform.
@@ -23,7 +28,8 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+// 1. CAMBIO IMPORTANTE: Implementamos UserDetails
+public class User implements UserDetails {
 
     /**
      * Unique identifier of the user.
@@ -101,5 +107,50 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = OffsetDateTime.now();
+    }
+
+    // =================================================================
+    // MÉTODOS DE SPRING SECURITY (USERDETAILS)
+    // Estos métodos conectan tus campos con lo que Spring Security espera.
+    // =================================================================
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Convierte tu Enum 'Role' en un permiso que Spring entiende
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        // Spring espera 'getPassword', tú tienes 'passwordHash'
+        return passwordHash;
+    }
+
+    @Override
+    public String getUsername() {
+        // Spring espera 'getUsername', tú usas el 'email' como usuario
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // La cuenta no expira
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // La cuenta no se bloquea
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // Las credenciales no expiran
+    }
+
+    @Override
+    public boolean isEnabled() {
+        // Conectamos esto con tu campo 'active'.
+        // Si active es false, Spring NO dejará loguear al usuario.
+        return active;
     }
 }

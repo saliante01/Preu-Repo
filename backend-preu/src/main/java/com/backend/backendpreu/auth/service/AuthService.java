@@ -3,13 +3,18 @@ package com.backend.backendpreu.auth.service;
 import com.backend.backendpreu.audit.service.AuditLogService;
 import com.backend.backendpreu.auth.dto.AuthResponseDTO;
 import com.backend.backendpreu.auth.dto.LoginRequestDTO;
+import com.backend.backendpreu.auth.dto.UserSummaryDTO;
 import com.backend.backendpreu.auth.security.JwtService;
 import com.backend.backendpreu.users.model.User;
 import com.backend.backendpreu.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +48,39 @@ public class AuthService {
                 .fullName(user.getFirstName() + " " + user.getLastName())
                 .role(user.getRole())
                 .token(token)
+                .build();
+    }
+
+    public UserSummaryDTO getAuthenticatedUser() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User not authenticated"
+            );
+        }
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User not found"
+                ));
+
+        return UserSummaryDTO.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .active(user.getActive())
                 .build();
     }
 
