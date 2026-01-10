@@ -19,18 +19,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter; // <--- Inyectamos el filtro nuevo
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Configuración CORS para permitir Cookies
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // 2. Desactivar CSRF (Stateless API)
                 .csrf(csrf -> csrf.disable())
-
-                // 3. Rutas Públicas vs Privadas
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/login",
@@ -38,36 +33,22 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-
-                // 4. Gestión de Sesión: SIN ESTADO (El token tiene la info)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
-                // 5. Habilitar frames solo para H2 Console
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-
-                // 6. AGREGAR EL FILTRO DE JWT ANTES DEL FILTRO DE USUARIO/PASSWORD
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // Bean de Configuración CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // ¡OJO AQUÍ! Pon la URL de tu Frontend (Angular/React).
-        // Si usas Postman no importa tanto, pero para el navegador es CRÍTICO.
         configuration.setAllowedOrigins(List.of("http://localhost:4200"));
-
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
-        // ESTO PERMITE LAS COOKIES:
         configuration.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

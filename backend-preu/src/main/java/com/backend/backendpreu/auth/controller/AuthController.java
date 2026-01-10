@@ -18,7 +18,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // Constante para la duración de la cookie (ej: 1 día en segundos)
+
     private static final long COOKIE_EXPIRY = 24 * 60 * 60;
 
     @PostMapping("/login")
@@ -27,7 +27,7 @@ public class AuthController {
             HttpServletResponse response
     ) {
         AuthResponseDTO authResult = authService.login(request);
-        ResponseCookie cookie = ResponseCookie.from("accessToken", authResult.getToken())
+        ResponseCookie cookie = ResponseCookie.from("accessCookie", authResult.getToken())
                 .httpOnly(true)
                 .secure(false)
                 .path("/")

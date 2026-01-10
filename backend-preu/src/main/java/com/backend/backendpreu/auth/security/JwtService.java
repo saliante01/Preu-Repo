@@ -23,7 +23,7 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
     }
 
-    // --- 1. Generación del Token (Ya lo tenías) ---
+
     public String generateToken(User user) {
         return Jwts.builder()
                 .setSubject(user.getEmail())
@@ -33,20 +33,18 @@ public class JwtService {
                 .compact();
     }
 
-    // --- 2. Extracción de Datos (NUEVO) ---
 
-    // Saca el email (subject) del token. El filtro lo necesita para buscar al usuario en la DB.
+
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // Método genérico para sacar cualquier dato (fecha, subject, rol, etc)
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    // Abre la "caja fuerte" del token usando tu llave secreta
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -55,11 +53,6 @@ public class JwtService {
                 .getBody();
     }
 
-    // --- 3. Validación (NUEVO) ---
-
-    // Verifica dos cosas:
-    // A) Que el email del token coincida con el usuario de la DB.
-    // B) Que el token no haya expirado.
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
