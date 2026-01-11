@@ -24,8 +24,14 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
+    private final CaptchaService captchaService;
 
     public AuthResponseDTO login(LoginRequestDTO request){
+
+        boolean isHuman = captchaService.verify(request.getCaptchaToken());
+        if (!isHuman) {
+            throw new RuntimeException("Captcha inválido o expirado. ¿Eres un robot?");
+        }
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
         if(!user.getActive()){
