@@ -46,7 +46,9 @@ public class AuthService {
                 user,
                 "LOGIN",
                 "USER",
-                user.getId()
+                user.getId(),
+                "Inicio de sesión exitoso vía Email/Password"
+
         );
         return AuthResponseDTO.builder()
                 .userId(user.getId())

@@ -23,7 +23,6 @@ public class CaptchaService {
     private final RestTemplate restTemplate;
 
     public boolean verify(String token) {
-        // Elimina o comenta este bloque en PRODUCCIÓN
 
         if ("PRUEBA".equals(token)) {
             log.warn("BYPASS DE CAPTCHA DETECTADO: Usando token de prueba.");

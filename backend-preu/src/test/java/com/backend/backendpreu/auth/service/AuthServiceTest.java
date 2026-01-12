@@ -39,7 +39,7 @@ class AuthServiceTest {
     @Mock
     private AuditLogService auditLogService;
 
-    @Mock // <--- 1. AGREGAMOS EL MOCK DEL NUEVO SERVICIO
+    @Mock
     private CaptchaService captchaService;
 
     @InjectMocks
@@ -62,13 +62,11 @@ class AuthServiceTest {
 
     @Test
     void login_success() {
-        // <--- 2. AGREGAMOS EL TOKEN AL CONSTRUCTOR (O usa setters si no tienes constructor)
         LoginRequestDTO request = new LoginRequestDTO();
         request.setEmail("admin@preu.cl");
         request.setPassword("password");
         request.setCaptchaToken("valid-token");
 
-        // <--- 3. SIMULAMOS QUE EL CAPTCHA ES VÁLIDO
         when(captchaService.verify("valid-token")).thenReturn(true);
 
         when(userRepository.findByEmail(request.getEmail()))
@@ -86,11 +84,11 @@ class AuthServiceTest {
         assertEquals(1L, response.getUserId());
         assertEquals("jwt-token", response.getToken());
 
+        // CORRECCIÓN AQUÍ: Agregamos anyString() para el campo 'details'
         verify(auditLogService, times(1))
-                .log(activeUser, "LOGIN", "USER", 1L);
+                .log(eq(activeUser), eq("LOGIN"), eq("USER"), eq(1L), anyString());
     }
 
-    // --- NUEVO TEST IMPORTANTE ---
     @Test
     void login_invalidCaptcha_throwsException() {
         LoginRequestDTO request = new LoginRequestDTO();
@@ -98,7 +96,6 @@ class AuthServiceTest {
         request.setPassword("password");
         request.setCaptchaToken("invalid-token");
 
-        // Simulamos que el Captcha falló
         when(captchaService.verify("invalid-token")).thenReturn(false);
 
         RuntimeException ex = assertThrows(
@@ -106,12 +103,13 @@ class AuthServiceTest {
                 () -> authService.login(request)
         );
 
-        // Verificamos el mensaje de error
         assertTrue(ex.getMessage().contains("Captcha"));
 
-        // Verificamos que NUNCA llamó a la base de datos (seguridad)
+        // Verificamos que no llamó a la BD
         verify(userRepository, never()).findByEmail(any());
         verify(jwtService, never()).generateToken(any());
+        // Verificamos que NO guardó log
+        verify(auditLogService, never()).log(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -121,8 +119,7 @@ class AuthServiceTest {
         request.setPassword("wrong-password");
         request.setCaptchaToken("valid-token");
 
-        // El captcha debe pasar para llegar a validar la password
-        when(captchaService.verify("valid-token")).thenReturn(true); // <--- AGREGADO
+        when(captchaService.verify("valid-token")).thenReturn(true);
 
         when(userRepository.findByEmail(request.getEmail()))
                 .thenReturn(Optional.of(activeUser));
@@ -137,6 +134,9 @@ class AuthServiceTest {
 
         assertEquals("Invalid password", ex.getMessage());
         verify(jwtService, never()).generateToken(any());
+        // El login fallido podría auditarse o no, dependiendo de tu lógica.
+        // Si no lo auditas aún en AuthService, verify never:
+        verify(auditLogService, never()).log(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -148,8 +148,7 @@ class AuthServiceTest {
         request.setPassword("password");
         request.setCaptchaToken("valid-token");
 
-        // El captcha debe pasar
-        when(captchaService.verify("valid-token")).thenReturn(true); // <--- AGREGADO
+        when(captchaService.verify("valid-token")).thenReturn(true);
 
         when(userRepository.findByEmail(request.getEmail()))
                 .thenReturn(Optional.of(activeUser));
@@ -160,6 +159,7 @@ class AuthServiceTest {
         );
 
         assertEquals("User inactive", ex.getMessage());
+        verify(auditLogService, never()).log(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -169,7 +169,7 @@ class AuthServiceTest {
         request.setPassword("password");
         request.setCaptchaToken("valid-token");
 
-        when(captchaService.verify("valid-token")).thenReturn(true); // <--- AGREGADO
+        when(captchaService.verify("valid-token")).thenReturn(true);
 
         when(userRepository.findByEmail(request.getEmail()))
                 .thenReturn(Optional.of(activeUser));
@@ -182,15 +182,17 @@ class AuthServiceTest {
 
         authService.login(request);
 
+        // CORRECCIÓN AQUÍ TAMBIÉN
         verify(auditLogService).log(
                 eq(activeUser),
                 eq("LOGIN"),
                 eq("USER"),
-                eq(1L)
+                eq(1L),
+                anyString() // <--- Aceptamos cualquier detalle
         );
     }
 
-    // Los tests de 'getAuthenticatedUser' no cambian porque ese método no usa Captcha
+    // --- Los tests de getAuthenticatedUser siguen igual ---
     @Test
     void getAuthenticatedUser_success() {
         Authentication authentication = mock(Authentication.class);

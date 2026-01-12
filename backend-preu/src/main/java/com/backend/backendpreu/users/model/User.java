@@ -109,15 +109,9 @@ public class User implements UserDetails {
         updatedAt = OffsetDateTime.now();
     }
 
-    // =================================================================
-    // MÉTODOS DE SPRING SECURITY (USERDETAILS)
-    // Estos métodos conectan tus campos con lo que Spring Security espera.
-    // =================================================================
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Convierte tu Enum 'Role' en un permiso que Spring entiende
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override

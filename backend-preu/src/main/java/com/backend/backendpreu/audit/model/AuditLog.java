@@ -3,62 +3,42 @@ package com.backend.backendpreu.audit.model;
 import com.backend.backendpreu.users.model.User;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
-import java.time.OffsetDateTime;
-
-/**
- * Records relevant actions performed within the system for auditing purposes.
- *
- * <p>This entity is used for traceability, security auditing,
- * and operational diagnostics.</p>
- *
- * <p>The associated user may be null for system-triggered actions.</p>
- */
 @Entity
 @Table(name = "audit_logs")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class AuditLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * User who performed the action.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    // EL ACTOR: ¿Quién hizo la acción? (Ej. El Admin)
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    /**
-     * Action performed (e.g. LOGIN, CREATE_EVALUATION).
-     */
+    // LA ACCIÓN: "CREATE", "UPDATE_STATUS", "DELETE"
     @Column(nullable = false)
     private String action;
 
-    /**
-     * Name of the affected entity.
-     */
+    // LA ENTIDAD AFECTADA: "USER", "COURSE"
     @Column(nullable = false)
-    private String entity;
+    private String entityName;
 
-    /**
-     * Identifier of the affected entity instance.
-     */
-    @Column(name = "entity_id")
+    // EL ID DE LA ENTIDAD: 45
+    @Column(nullable = false)
     private Long entityId;
 
-    /**
-     * Timestamp when the action occurred.
-     */
-    @Column(name = "timestamp", nullable = false, updatable = false)
-    private OffsetDateTime timestamp;
+    // --- NUEVO CAMPO ---
+    // DETALLES: "Creó al usuario pepe@gmail.com con rol USER"
+    @Column(length = 1000) // Damos espacio suficiente
+    private String details;
 
-    @PrePersist
-    protected void onCreate() {
-        timestamp = OffsetDateTime.now();
-    }
+    @Column(nullable = false)
+    private LocalDateTime timestamp;
 }
