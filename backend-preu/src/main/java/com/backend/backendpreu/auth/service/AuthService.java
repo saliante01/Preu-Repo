@@ -34,11 +34,14 @@ public class AuthService {
         }
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
-        if(!user.getActive()){
-            throw new RuntimeException("User inactive");
+        if (!user.getActive()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Tu cuenta está desactivada. Contacta a administración."
+            );
         }
-        if(!passwordEncoder.matches(request.getPassword(),user.getPasswordHash())){
-            throw new RuntimeException("Invalid password");
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email o contraseña incorrectos");
         }
         String token = jwtService.generateToken(user);
 

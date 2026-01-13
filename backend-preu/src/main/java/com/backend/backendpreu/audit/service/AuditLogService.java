@@ -1,5 +1,6 @@
 package com.backend.backendpreu.audit.service;
 
+import com.backend.backendpreu.audit.dto.AuditLogResponseDTO;
 import com.backend.backendpreu.audit.model.AuditLog;
 import com.backend.backendpreu.audit.repository.AuditLogRepository;
 import com.backend.backendpreu.users.model.User;
@@ -7,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,4 +38,25 @@ public class AuditLogService {
 
         auditLogRepository.save(auditLog);
     }
+
+    public List<AuditLogResponseDTO> getAuditLogs(Long userId, String action, String entityName) {
+
+        // Llamamos al repo con los filtros
+        List<AuditLog> logs = auditLogRepository.searchAuditLogs(userId, action, entityName);
+
+        // Convertimos Entidad -> DTO
+        return logs.stream()
+                .map(log -> AuditLogResponseDTO.builder()
+                        .id(log.getId())
+                        .actorName(log.getUser().getFirstName() + " " + log.getUser().getLastName())
+                        .role(log.getUser().getRole().name())
+                        .action(log.getAction())
+                        .entityName(log.getEntityName())
+                        .entityId(log.getEntityId())
+                        .details(log.getDetails())
+                        .timestamp(log.getTimestamp())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 }
