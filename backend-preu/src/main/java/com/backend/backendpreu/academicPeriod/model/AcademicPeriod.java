@@ -1,6 +1,7 @@
 package com.backend.backendpreu.academicPeriod.model;
 
 import com.backend.backendpreu.courses.model.Course;
+import com.backend.backendpreu.courses.model.SchoolTerm;
 import com.backend.backendpreu.meetings.model.Meeting;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,6 +39,9 @@ public class AcademicPeriod {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "term_id") // Nueva columna
+    private SchoolTerm schoolTerm;
     /**
      * Start date of the academic period.
      */
