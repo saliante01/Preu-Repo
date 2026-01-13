@@ -16,4 +16,5 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     // Búsqueda por nombre (ej: buscar "Matem" -> trae Matemáticas)
     // IgnoreCase hace que no importen mayúsculas/minúsculas
     List<Course> findByNameContainingIgnoreCase(String name);
+
 }

@@ -30,4 +30,5 @@ public interface CourseParticipationRepository extends JpaRepository<CourseParti
             "WHERE p.user.id = :userId " +
             "ORDER BY st.startDate DESC")
     List<CourseParticipation> findFullHistoryByUserId(@Param("userId") Long userId);
+
 }
