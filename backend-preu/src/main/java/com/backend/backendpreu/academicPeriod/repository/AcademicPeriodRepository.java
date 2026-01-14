@@ -1,4 +1,4 @@
-package com.backend.backendpreu.academicPaticipation.repository;
+package com.backend.backendpreu.academicPeriod.repository;
 
 import com.backend.backendpreu.academicPeriod.model.AcademicPeriod;
 import com.backend.backendpreu.academicPeriod.model.AcademicPeriodStatus;
@@ -13,17 +13,26 @@ import java.util.Optional;
 @Repository
 public interface AcademicPeriodRepository extends JpaRepository<AcademicPeriod, Long> {
 
-    // Buscar todos los cursos que se están dictando en un Semestre específico
     List<AcademicPeriod> findBySchoolTermId(Long schoolTermId);
 
-    // Buscar todos los cursos activos
+    boolean existsBySchoolTermId(Long termId);
+
     List<AcademicPeriod> findByStatus(AcademicPeriodStatus status);
 
-    // OPTIMIZADO: Traer el detalle completo de un curso por ID
-    // Carga de una sola vez el Curso base y el Semestre (SchoolTerm)
     @Query("SELECT ap FROM AcademicPeriod ap " +
             "JOIN FETCH ap.course " +
             "JOIN FETCH ap.schoolTerm " +
             "WHERE ap.id = :id")
     Optional<AcademicPeriod> findByIdWithDetails(@Param("id") Long id);
+
+
+    @Query("SELECT ap FROM AcademicPeriod ap " +
+            "WHERE ap.schoolTerm.active = true " +
+            "AND ap.status = 'ACTIVE' " +
+            "AND ap.id NOT IN (" +
+            "    SELECT cp.academicPeriod.id " +
+            "    FROM CourseParticipation cp " +
+            "    WHERE cp.user.id = :studentId" +
+            ")")
+    List<AcademicPeriod> findAvailableForStudent(@Param("studentId") Long studentId);
 }

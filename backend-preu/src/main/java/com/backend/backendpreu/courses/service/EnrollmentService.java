@@ -4,7 +4,7 @@ import com.backend.backendpreu.academicPaticipation.model.CourseParticipation;
 import com.backend.backendpreu.academicPaticipation.model.ParticipationStatus;
 import com.backend.backendpreu.academicPaticipation.repository.CourseParticipationRepository;
 import com.backend.backendpreu.academicPeriod.model.AcademicPeriod;
-import com.backend.backendpreu.academicPaticipation.repository.AcademicPeriodRepository;
+import com.backend.backendpreu.academicPeriod.repository.AcademicPeriodRepository;
 import com.backend.backendpreu.audit.service.AuditLogService;
 import com.backend.backendpreu.courses.dto.EnrollmentRequestDTO;
 import com.backend.backendpreu.users.model.User;

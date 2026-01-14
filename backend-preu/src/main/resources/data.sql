@@ -139,3 +139,19 @@ INSERT INTO course_participation (user_id, academic_period_id, role, status, enr
 -- Se mete a mirar Historia
 INSERT INTO course_participation (user_id, academic_period_id, role, status, enrolled_at) VALUES
     (1, 5, 'STUDENT', 'ACTIVE', NOW());
+
+-- ... tus inserts anteriores ...
+
+-- ---------------------------------------------------------
+-- REINICIAR CONTADORES (Para H2 Database)
+-- Ajustamos la secuencia para que empiece después del último ID que usaste (ej: 10)
+-- ---------------------------------------------------------
+-- ---------------------------------------------------------
+-- REINICIAR CONTADORES (CORREGIDO)
+-- Usamos 100 para asegurarnos de no chocar con los datos insertados
+-- ---------------------------------------------------------
+ALTER TABLE school_terms ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE users ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE courses ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE academic_periods ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE course_participation ALTER COLUMN id RESTART WITH 100;

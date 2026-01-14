@@ -8,21 +8,20 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface CourseParticipationRepository extends JpaRepository<CourseParticipation, Long> {
 
     // 1. Validar si un alumno ya está inscrito en un curso específico
-    // (Útil para no inscribirlo dos veces)
     boolean existsByAcademicPeriodIdAndUserId(Long academicPeriodId, Long userId);
 
     // 2. Traer todos los alumnos de un curso específico
     List<CourseParticipation> findByAcademicPeriodIdAndStatus(Long academicPeriodId, ParticipationStatus status);
 
-    // 3. QUERY MAESTRA: Historial Académico del Alumno
-    // Trae: Participación -> Curso Ejecutado (AcademicPeriod) -> Curso Base + Semestre (SchoolTerm)
-    // Ordenado por fecha de inicio del semestre (más reciente primero)
+    // 3. Buscar cursos de un usuario (para "Mis Cursos")
+    List<CourseParticipation> findByUserId(Long userId);
+
+    // 4. QUERY MAESTRA: Historial Académico Completo
     @Query("SELECT p FROM CourseParticipation p " +
             "JOIN FETCH p.academicPeriod ap " +
             "JOIN FETCH ap.course c " +
@@ -30,5 +29,4 @@ public interface CourseParticipationRepository extends JpaRepository<CourseParti
             "WHERE p.user.id = :userId " +
             "ORDER BY st.startDate DESC")
     List<CourseParticipation> findFullHistoryByUserId(@Param("userId") Long userId);
-
 }
