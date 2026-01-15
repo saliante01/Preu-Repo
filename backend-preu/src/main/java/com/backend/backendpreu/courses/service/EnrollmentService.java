@@ -44,7 +44,7 @@ public class EnrollmentService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario ya está inscrito en este curso.");
         }
 
-        // 5. Crear la inscripción
+
         CourseParticipation participation = CourseParticipation.builder()
                 .user(userToEnroll)
                 .academicPeriod(period)
@@ -55,7 +55,7 @@ public class EnrollmentService {
 
         participationRepository.save(participation);
 
-        // 6. Registrar Auditoría
+
         String detailMessage = String.format("Inscripción creada: %s (%s) en curso ID %d como %s",
                 userToEnroll.getEmail(), userToEnroll.getFirstName(), period.getId(), request.getRole());
 
