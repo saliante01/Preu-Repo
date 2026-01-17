@@ -188,4 +188,10 @@ public class AcademicPeriodService {
                 .currentEnrollment(currentCount)
                 .build();
     }
+
+    public AcademicPeriodSummaryDTO getPeriodById(Long id) {
+        AcademicPeriod period = academicPeriodRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Periodo no encontrado"));
+        return mapToDTO(period);
+    }
 }

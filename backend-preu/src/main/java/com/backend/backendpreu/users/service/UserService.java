@@ -23,7 +23,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
 
-    // ... (CREATE y UPDATE se mantienen igual) ...
+
     @Transactional
     public UserResponseDTO createUser(CreateUserRequestDTO request, User adminUser) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -151,10 +151,12 @@ public class UserService {
     }
 
     @Transactional
-    public void updateTeacherSubjects(Long teacherId, TeacherSubjectsDTO dto) {
+    public User updateTeacherSubjects(Long teacherId, TeacherSubjectsDTO dto) {
         User teacher = userRepository.findById(teacherId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profesor no encontrado"));
+
         teacher.setSubjects(dto.getSubjects());
-        userRepository.save(teacher);
+        return userRepository.save(teacher);
     }
+
 }

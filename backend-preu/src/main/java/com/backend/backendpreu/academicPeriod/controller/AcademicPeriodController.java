@@ -74,4 +74,10 @@ public class AcademicPeriodController {
         academicPeriodService.assignTeacherToPeriod(periodId, request.getTeacherId(), authentication.getName());
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'PROFESSOR')")
+    public ResponseEntity<AcademicPeriodSummaryDTO> getOnePeriod(@PathVariable Long id) {
+        return ResponseEntity.ok(academicPeriodService.getPeriodById(id));
+    }
 }

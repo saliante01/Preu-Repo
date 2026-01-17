@@ -87,8 +87,12 @@ public class AdminUserController {
 
     @PutMapping("/{id}/subjects")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> updateSubjects(@PathVariable Long id, @RequestBody TeacherSubjectsDTO dto) {
-        userService.updateTeacherSubjects(id, dto);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<TeacherSubjectsDTO> updateSubjects(@PathVariable Long id, @RequestBody TeacherSubjectsDTO dto) {
+        User updated = userService.updateTeacherSubjects(id, dto);
+
+        TeacherSubjectsDTO response = new TeacherSubjectsDTO();
+        response.setSubjects(updated.getSubjects());
+
+        return ResponseEntity.ok(response);
     }
 }

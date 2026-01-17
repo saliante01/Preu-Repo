@@ -6,13 +6,16 @@ import com.backend.backendpreu.academicPaticipation.model.ParticipationStatus;
 import com.backend.backendpreu.academicPaticipation.repository.CourseParticipationRepository;
 import com.backend.backendpreu.academicPeriod.model.AcademicPeriod;
 import com.backend.backendpreu.academicPeriod.model.ClassSchedule;
+import com.backend.backendpreu.users.dto.AvailableTeacherDTO;
 import com.backend.backendpreu.users.dto.TeacherDashboardDTO;
 import com.backend.backendpreu.users.model.Role;
 import com.backend.backendpreu.users.model.User;
 import com.backend.backendpreu.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,5 +81,54 @@ public class TeacherDashboardService {
                 .totalWeeklyHours(totalHours)
                 .workloadStatus(status)
                 .build();
+    }
+
+    public List<AvailableTeacherDTO> findAvailableTeachers(String subject, int maxHours) {
+        // 1. Traer todos los profes
+        List<User> allTeachers = userRepository.findByRole(Role.PROFESSOR);
+        List<AvailableTeacherDTO> result = new ArrayList<>();
+
+        for (User teacher : allTeachers) {
+            // Filtro 1: ¿Sabe la materia?
+            if (teacher.getSubjects() == null || !teacher.getSubjects().contains(subject)) {
+                continue;
+            }
+
+            // Filtro 2: Calcular carga actual (Reusamos lógica interna o simplificamos)
+            List<CourseParticipation> active = participationRepository
+                    .findAllByUserIdAndRoleAndStatus(teacher.getId(), CourseRole.MAIN_PROFESSOR, ParticipationStatus.ACTIVE);
+
+            long hours = 0;
+            for(CourseParticipation p : active) {
+                if(p.getAcademicPeriod().getSchedule() != null) {
+                    hours += p.getAcademicPeriod().getSchedule().getDurationInHours();
+                }
+            }
+
+            // Filtro 3: ¿Tiene espacio?
+            if (hours < maxHours) {
+                result.add(AvailableTeacherDTO.builder()
+                        .id(teacher.getId())
+                        .fullName(teacher.getFirstName() + " " + teacher.getLastName())
+                        .currentHours(hours)
+                        .status(hours > 35 ? "ALERTA" : "LIBRE")
+                        .build());
+            }
+        }
+        return result;
+    }
+    // ... dentro de TeacherDashboardService
+
+    public TeacherDashboardDTO getTeacherStats(Long teacherId) {
+        User teacher = userRepository.findById(teacherId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profesor no encontrado"));
+
+        // Opcional: Validar que sea realmente un profesor
+        if (teacher.getRole() != Role.PROFESSOR) {
+            // Puedes decidir si lanzar error o devolverlo igual
+            // throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El usuario no es profesor");
+        }
+
+        return buildTeacherStats(teacher);
     }
 }
