@@ -1,6 +1,7 @@
 package com.backend.backendpreu.academicPaticipation.repository;
 
 import com.backend.backendpreu.academicPaticipation.model.CourseParticipation;
+import com.backend.backendpreu.academicPaticipation.model.CourseRole;
 import com.backend.backendpreu.academicPaticipation.model.ParticipationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,12 +13,16 @@ import java.util.List;
 @Repository
 public interface CourseParticipationRepository extends JpaRepository<CourseParticipation, Long> {
 
-
     boolean existsByAcademicPeriodIdAndUserId(Long academicPeriodId, Long userId);
 
     List<CourseParticipation> findByAcademicPeriodIdAndStatus(Long academicPeriodId, ParticipationStatus status);
 
     List<CourseParticipation> findByUserId(Long userId);
+
+    // 👇 AGREGA ESTA LÍNEA PARA SOLUCIONAR EL ERROR 👇
+    List<CourseParticipation> findAllByUserIdAndRoleAndStatus(Long userId, CourseRole role, ParticipationStatus status);
+    
+    Integer countByAcademicPeriodIdAndRole(Long academicPeriodId, CourseRole role);
 
     @Query("SELECT p FROM CourseParticipation p " +
             "JOIN FETCH p.academicPeriod ap " +

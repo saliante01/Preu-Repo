@@ -1,9 +1,6 @@
 package com.backend.backendpreu.users.controller;
 
-import com.backend.backendpreu.users.dto.UserResponseDTO;
-import com.backend.backendpreu.users.dto.CreateUserRequestDTO;
-import com.backend.backendpreu.users.dto.UpdateUserRequestDTO;
-import com.backend.backendpreu.users.dto.ChangeRoleRequestDTO;
+import com.backend.backendpreu.users.dto.*;
 import com.backend.backendpreu.users.model.User;
 import com.backend.backendpreu.users.service.UserService;
 import jakarta.validation.Valid;
@@ -86,5 +83,12 @@ public class AdminUserController {
     ) {
         Page<UserResponseDTO> users = userService.getAllUsers(role, active, pageable);
         return ResponseEntity.ok(users);
+    }
+
+    @PutMapping("/{id}/subjects")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> updateSubjects(@PathVariable Long id, @RequestBody TeacherSubjectsDTO dto) {
+        userService.updateTeacherSubjects(id, dto);
+        return ResponseEntity.ok().build();
     }
 }

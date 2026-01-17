@@ -1,10 +1,7 @@
 package com.backend.backendpreu.users.service;
 
 import com.backend.backendpreu.audit.service.AuditLogService;
-import com.backend.backendpreu.users.dto.ChangeRoleRequestDTO;
-import com.backend.backendpreu.users.dto.CreateUserRequestDTO;
-import com.backend.backendpreu.users.dto.UpdateUserRequestDTO;
-import com.backend.backendpreu.users.dto.UserResponseDTO;
+import com.backend.backendpreu.users.dto.*;
 import com.backend.backendpreu.users.model.Role;
 import com.backend.backendpreu.users.model.User;
 import com.backend.backendpreu.users.repository.UserRepository;
@@ -15,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -149,5 +148,13 @@ public class UserService {
                 .active(user.getActive())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    @Transactional
+    public void updateTeacherSubjects(Long teacherId, TeacherSubjectsDTO dto) {
+        User teacher = userRepository.findById(teacherId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profesor no encontrado"));
+        teacher.setSubjects(dto.getSubjects());
+        userRepository.save(teacher);
     }
 }

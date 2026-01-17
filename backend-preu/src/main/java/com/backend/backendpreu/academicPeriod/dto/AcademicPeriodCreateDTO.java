@@ -1,7 +1,10 @@
 package com.backend.backendpreu.academicPeriod.dto;
 
 import lombok.Data;
+
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 public class AcademicPeriodCreateDTO {
@@ -16,4 +19,9 @@ public class AcademicPeriodCreateDTO {
     // (Pueden ser distintas a las del semestre general si el curso es más corto)
     private LocalDate startDate;
     private LocalDate endDate;
+    private Integer maxCapacity;
+
+    private DayOfWeek dayOfWeek;
+    private LocalTime startTime;
+    private LocalTime endTime;
 }

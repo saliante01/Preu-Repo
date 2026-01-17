@@ -17,4 +17,6 @@ public class AcademicPeriodSummaryDTO {
     private String status;      // Para saber si es ACTIVE, PENDING o FINISHED
     private LocalDate startDate;
     private LocalDate endDate;
+    private Integer maxCapacity;
+    private Integer currentEnrollment;
 }

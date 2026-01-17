@@ -2,6 +2,7 @@ package com.backend.backendpreu.academicPeriod.controller;
 
 import com.backend.backendpreu.academicPeriod.dto.AcademicPeriodCreateDTO;
 import com.backend.backendpreu.academicPeriod.dto.AcademicPeriodSummaryDTO;
+import com.backend.backendpreu.academicPeriod.dto.TeacherAssignmentDTO;
 import com.backend.backendpreu.academicPeriod.model.AcademicPeriod;
 import com.backend.backendpreu.academicPeriod.service.AcademicPeriodService;
 import lombok.RequiredArgsConstructor;
@@ -61,5 +62,16 @@ public class AcademicPeriodController {
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<List<AcademicPeriodSummaryDTO>> getAllPeriods() {
         return ResponseEntity.ok(academicPeriodService.getAllPeriods());
+    }
+    // Asignar Profesor
+    @PostMapping("/{periodId}/teachers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> assignTeacher(
+            @PathVariable Long periodId,
+            @RequestBody TeacherAssignmentDTO request, // Crea un DTO simple con { "teacherId": 2 }
+            Authentication authentication
+    ) {
+        academicPeriodService.assignTeacherToPeriod(periodId, request.getTeacherId(), authentication.getName());
+        return ResponseEntity.ok().build();
     }
 }

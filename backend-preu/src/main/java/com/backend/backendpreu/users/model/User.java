@@ -8,7 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a system user within the academic intranet platform.
@@ -90,6 +92,13 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name= "user_subjects",
+            joinColumns = @JoinColumn(name="user_id")
+    )
+    @Column(name="subject_name")
+    private Set<String> subjects = new HashSet<>();
     /**
      * Automatically sets creation and update timestamps
      * when the entity is first persisted.

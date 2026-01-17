@@ -8,4 +8,5 @@ public class EnrollmentRequestDTO {
     private Long userId;
     private Long academicPeriodId;
     private CourseRole role;
+    private boolean forceEnroll;
 }

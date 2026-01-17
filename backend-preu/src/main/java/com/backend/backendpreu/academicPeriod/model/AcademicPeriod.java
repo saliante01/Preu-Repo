@@ -32,9 +32,13 @@ public class AcademicPeriod {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     /**
      * Base course associated with this academic period.
      */
+    @Column(name = "max_capacity", nullable = false)
+    private Integer maxCapacity;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
@@ -67,6 +71,9 @@ public class AcademicPeriod {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "schedule_id", referencedColumnName = "id")
+    private ClassSchedule schedule;
     /**
      * Timestamp of the last update.
      */
