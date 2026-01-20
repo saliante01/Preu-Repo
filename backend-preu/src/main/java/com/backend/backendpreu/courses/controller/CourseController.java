@@ -33,4 +33,26 @@ public class CourseController {
     ) {
         return ResponseEntity.ok(courseService.createCourse(request, authentication.getName()));
     }
+
+    // PUT: Actualizar curso base - NEW ENDPOINT
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Course> updateCourse(
+            @PathVariable Long id,
+            @RequestBody CourseRequestDTO request,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(courseService.updateCourse(id, request, authentication.getName()));
+    }
+
+    // DELETE: Eliminar curso base - NEW ENDPOINT
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteCourse(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        courseService.deleteCourse(id, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
 }

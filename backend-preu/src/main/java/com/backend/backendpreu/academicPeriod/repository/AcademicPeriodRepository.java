@@ -35,4 +35,6 @@ public interface AcademicPeriodRepository extends JpaRepository<AcademicPeriod, 
             "    WHERE cp.user.id = :studentId" +
             ")")
     List<AcademicPeriod> findAvailableForStudent(@Param("studentId") Long studentId);
+
+    boolean existsByCourseId(Long courseId);
 }
