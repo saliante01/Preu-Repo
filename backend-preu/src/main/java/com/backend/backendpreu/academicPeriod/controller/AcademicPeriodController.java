@@ -80,4 +80,13 @@ public class AcademicPeriodController {
     public ResponseEntity<AcademicPeriodSummaryDTO> getOnePeriod(@PathVariable Long id) {
         return ResponseEntity.ok(academicPeriodService.getPeriodById(id));
     }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deletePeriod(@PathVariable Long id, Authentication authentication) {
+        // Llamamos al servicio pasando el ID y el email del admin (para auditoría)
+        academicPeriodService.deletePeriod(id, authentication.getName());
+
+        // Retornamos 204 No Content (Estándar para borrados exitosos)
+        return ResponseEntity.noContent().build();
+    }
 }

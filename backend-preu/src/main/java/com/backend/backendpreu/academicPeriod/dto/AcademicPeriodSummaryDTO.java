@@ -13,7 +13,7 @@ public class AcademicPeriodSummaryDTO {
     private String courseCode;  // Ej: "MAT-PAES-1"
     private String termName;    // Ej: "Admisión 2026"
     private String description; // Ej: "Entrenamiento intensivo"
-
+    private String schedule;
     private String status;      // Para saber si es ACTIVE, PENDING o FINISHED
     private LocalDate startDate;
     private LocalDate endDate;

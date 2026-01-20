@@ -1,5 +1,6 @@
 package com.backend.backendpreu.academicPeriod.service;
 
+import com.backend.backendpreu.courses.dto.CourseParticipantDTO; // Asegúrate de tener este DTO creado
 import com.backend.backendpreu.academicPaticipation.model.CourseParticipation;
 import com.backend.backendpreu.academicPaticipation.model.CourseRole;
 import com.backend.backendpreu.academicPaticipation.model.ParticipationStatus;
@@ -8,7 +9,7 @@ import com.backend.backendpreu.academicPeriod.dto.AcademicPeriodCreateDTO;
 import com.backend.backendpreu.academicPeriod.dto.AcademicPeriodSummaryDTO;
 import com.backend.backendpreu.academicPeriod.model.AcademicPeriod;
 import com.backend.backendpreu.academicPeriod.model.AcademicPeriodStatus;
-import com.backend.backendpreu.academicPeriod.model.ClassSchedule; // Importante
+import com.backend.backendpreu.academicPeriod.model.ClassSchedule;
 import com.backend.backendpreu.academicPeriod.repository.AcademicPeriodRepository;
 import com.backend.backendpreu.audit.service.AuditLogService;
 import com.backend.backendpreu.courses.Repository.CourseRepository;
@@ -45,7 +46,29 @@ public class AcademicPeriodService {
         return periods.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // --- CREACIÓN (Ahora con Horario y Capacidad) ---
+    @Transactional(readOnly = true)
+    public AcademicPeriodSummaryDTO getPeriodById(Long id) {
+        AcademicPeriod period = academicPeriodRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Periodo no encontrado"));
+        return mapToDTO(period);
+    }
+
+    // --- LECTURA DE PARTICIPANTES (Paso 12 del Flujo) ---
+    @Transactional(readOnly = true)
+    public List<CourseParticipantDTO> getParticipants(Long periodId) {
+        List<CourseParticipation> participations = participationRepository
+                .findByAcademicPeriodIdAndStatus(periodId, ParticipationStatus.ACTIVE);
+
+        return participations.stream().map(p -> CourseParticipantDTO.builder()
+                        .userId(p.getUser().getId())
+                        .fullName(p.getUser().getFirstName() + " " + p.getUser().getLastName())
+                        .email(p.getUser().getEmail())
+                        .role(p.getRole().name())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // --- CREACIÓN ---
     @Transactional
     public AcademicPeriod createPeriod(AcademicPeriodCreateDTO request, String adminEmail) {
         // 1. Validar Curso
@@ -70,18 +93,16 @@ public class AcademicPeriodService {
         period.setStartDate(request.getStartDate());
         period.setEndDate(request.getEndDate());
         period.setStatus(AcademicPeriodStatus.ACTIVE);
-
-        // Capacidad (Default 30)
         period.setMaxCapacity(request.getMaxCapacity() != null ? request.getMaxCapacity() : 30);
 
-        // 4. Crear Horario (Si viene en el request)
+        // 4. Crear Horario
         if (request.getDayOfWeek() != null && request.getStartTime() != null && request.getEndTime() != null) {
             ClassSchedule schedule = ClassSchedule.builder()
                     .dayOfWeek(request.getDayOfWeek())
                     .startTime(request.getStartTime())
                     .endTime(request.getEndTime())
                     .build();
-            period.setSchedule(schedule); // Se guardará por CascadeType.ALL
+            period.setSchedule(schedule);
         }
 
         AcademicPeriod savedPeriod = academicPeriodRepository.save(period);
@@ -93,7 +114,61 @@ public class AcademicPeriodService {
         return savedPeriod;
     }
 
-    // --- ASIGNAR PROFESOR (NUEVO) ---
+    // --- ACTUALIZACIÓN (Paso 10 del Flujo) ---
+    @Transactional
+    public AcademicPeriod updatePeriod(Long periodId, AcademicPeriodCreateDTO request, String adminEmail) {
+        AcademicPeriod period = academicPeriodRepository.findById(periodId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Periodo no encontrado"));
+
+        // Actualizar datos básicos
+        period.setStartDate(request.getStartDate());
+        period.setEndDate(request.getEndDate());
+        if(request.getMaxCapacity() != null) {
+            period.setMaxCapacity(request.getMaxCapacity());
+        }
+
+        // Actualizar Horario
+        if (request.getDayOfWeek() != null) {
+            if (period.getSchedule() == null) {
+                period.setSchedule(new ClassSchedule());
+            }
+            period.getSchedule().setDayOfWeek(request.getDayOfWeek());
+            period.getSchedule().setStartTime(request.getStartTime());
+            period.getSchedule().setEndTime(request.getEndTime());
+        }
+
+        // Auditoría
+        User admin = userRepository.findByEmail(adminEmail).orElseThrow();
+        auditLogService.log(admin, "UPDATE_PERIOD", "ACADEMIC_PERIOD", periodId, "Actualizó horario/fechas");
+
+        return academicPeriodRepository.save(period);
+    }
+
+    // --- ELIMINAR (Paso 10 del Flujo) ---
+    @Transactional
+    public void deletePeriod(Long periodId, String adminEmail) {
+        AcademicPeriod period = academicPeriodRepository.findById(periodId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Periodo no encontrado"));
+
+        // Seguridad: No borrar si hay alumnos
+        Integer enrollmentCount = participationRepository.countByAcademicPeriodIdAndRole(
+                periodId,
+                CourseRole.STUDENT
+        );
+
+        if (enrollmentCount > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "No se puede eliminar: Hay " + enrollmentCount + " alumnos inscritos. Dales de baja primero.");
+        }
+
+        academicPeriodRepository.delete(period);
+
+        User admin = userRepository.findByEmail(adminEmail).orElseThrow();
+        auditLogService.log(admin, "DELETE_PERIOD", "ACADEMIC_PERIOD", periodId,
+                "Eliminó el horario del curso ID: " + periodId);
+    }
+
+    // --- ASIGNAR PROFESOR ---
     @Transactional
     public void assignTeacherToPeriod(Long periodId, Long teacherId, String adminEmail) {
         AcademicPeriod period = academicPeriodRepository.findById(periodId)
@@ -102,7 +177,6 @@ public class AcademicPeriodService {
         User teacher = userRepository.findById(teacherId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profesor no encontrado"));
 
-        // Validar si ya está asignado
         boolean alreadyAssigned = participationRepository.existsByAcademicPeriodIdAndUserId(periodId, teacherId);
         if (alreadyAssigned) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Este profesor ya está asignado.");
@@ -121,7 +195,6 @@ public class AcademicPeriodService {
         auditLogService.log(admin, "ASSIGN_TEACHER", "ACADEMIC_PERIOD", periodId,
                 "Asignó a " + teacher.getEmail() + " al curso " + period.getId());
     }
-
 
     // --- GESTIÓN DE ESTADOS ---
     @Transactional
@@ -168,12 +241,22 @@ public class AcademicPeriodService {
         return allPeriods.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // --- MAPPER AUXILIAR ---
+    // --- MAPPER AUXILIAR (Mejorado para visualización) ---
     private AcademicPeriodSummaryDTO mapToDTO(AcademicPeriod period) {
         Integer currentCount = participationRepository.countByAcademicPeriodIdAndRole(
                 period.getId(),
                 CourseRole.STUDENT
         );
+
+        // Lógica de visualización del horario (Para que el Admin sepa qué borrar)
+        String scheduleText = "Sin Horario";
+        if (period.getSchedule() != null) {
+            scheduleText = String.format("%s %s - %s",
+                    period.getSchedule().getDayOfWeek(),
+                    period.getSchedule().getStartTime(),
+                    period.getSchedule().getEndTime()
+            );
+        }
 
         return AcademicPeriodSummaryDTO.builder()
                 .id(period.getId())
@@ -186,12 +269,7 @@ public class AcademicPeriodService {
                 .endDate(period.getEndDate())
                 .maxCapacity(period.getMaxCapacity())
                 .currentEnrollment(currentCount)
+                .schedule(scheduleText) // <--- CAMPO CLAVE VISUAL
                 .build();
-    }
-
-    public AcademicPeriodSummaryDTO getPeriodById(Long id) {
-        AcademicPeriod period = academicPeriodRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Periodo no encontrado"));
-        return mapToDTO(period);
     }
 }
