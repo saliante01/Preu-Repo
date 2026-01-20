@@ -80,6 +80,14 @@ public class AcademicPeriodController {
     public ResponseEntity<AcademicPeriodSummaryDTO> getOnePeriod(@PathVariable Long id) {
         return ResponseEntity.ok(academicPeriodService.getPeriodById(id));
     }
+
+    // NUEVO ENDPOINT: Obtener períodos académicos por ID de curso
+    @GetMapping("/by-course/{courseId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')") // Admins y Profesores pueden ver los horarios de un curso
+    public ResponseEntity<List<AcademicPeriodSummaryDTO>> getPeriodsByCourse(@PathVariable Long courseId) {
+        return ResponseEntity.ok(academicPeriodService.getPeriodsByCourse(courseId));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePeriod(@PathVariable Long id, Authentication authentication) {

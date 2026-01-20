@@ -95,7 +95,22 @@ public class AcademicPeriodService {
         period.setStatus(AcademicPeriodStatus.ACTIVE);
         period.setMaxCapacity(request.getMaxCapacity() != null ? request.getMaxCapacity() : 30);
 
-        // 4. Crear Horario
+        // 4. Validar Duplicados de Horario (si se proporciona un horario)
+        if (request.getDayOfWeek() != null && request.getStartTime() != null && request.getEndTime() != null) {
+            boolean existsDuplicateSchedule = academicPeriodRepository.existsByCourseIdAndSchoolTermIdAndSchedule_DayOfWeekAndSchedule_StartTimeAndSchedule_EndTime(
+                    request.getCourseId(),
+                    request.getTermId(),
+                    request.getDayOfWeek(),
+                    request.getStartTime(),
+                    request.getEndTime()
+            );
+
+            if (existsDuplicateSchedule) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un período académico con la misma asignatura, semestre, día y horario.");
+            }
+        }
+
+        // 5. Crear Horario (ahora es el paso 5)
         if (request.getDayOfWeek() != null && request.getStartTime() != null && request.getEndTime() != null) {
             ClassSchedule schedule = ClassSchedule.builder()
                     .dayOfWeek(request.getDayOfWeek())
@@ -239,6 +254,17 @@ public class AcademicPeriodService {
     public List<AcademicPeriodSummaryDTO> getAllPeriods() {
         List<AcademicPeriod> allPeriods = academicPeriodRepository.findAll(Sort.by(Sort.Direction.DESC, "startDate"));
         return allPeriods.stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    // --- NUEVO MÉTODO: Obtener períodos académicos por curso ---
+    @Transactional(readOnly = true)
+    public List<AcademicPeriodSummaryDTO> getPeriodsByCourse(Long courseId) {
+        // Validar si el curso existe antes de buscar sus períodos
+        if (!courseRepository.existsById(courseId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El curso no existe con ID: " + courseId);
+        }
+        List<AcademicPeriod> periods = academicPeriodRepository.findByCourseId(courseId);
+        return periods.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     // --- MAPPER AUXILIAR (Mejorado para visualización) ---

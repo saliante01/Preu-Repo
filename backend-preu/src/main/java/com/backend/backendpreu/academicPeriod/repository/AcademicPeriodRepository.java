@@ -37,4 +37,10 @@ public interface AcademicPeriodRepository extends JpaRepository<AcademicPeriod, 
     List<AcademicPeriod> findAvailableForStudent(@Param("studentId") Long studentId);
 
     boolean existsByCourseId(Long courseId);
+
+    List<AcademicPeriod> findByCourseId(Long courseId);
+
+    // Nuevo método para verificar duplicados por curso, semestre y horario
+    boolean existsByCourseIdAndSchoolTermIdAndSchedule_DayOfWeekAndSchedule_StartTimeAndSchedule_EndTime(
+            Long courseId, Long schoolTermId, java.time.DayOfWeek dayOfWeek, java.time.LocalTime startTime, java.time.LocalTime endTime);
 }
