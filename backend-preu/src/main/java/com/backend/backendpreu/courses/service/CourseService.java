@@ -64,7 +64,15 @@ public class CourseService {
         return savedCourse;
     }
 
-    // Actualizar Curso - NEW METHOD
+    // Obtener Cursos con Períodos Académicos Asociados - NEW METHOD
+    @Transactional(readOnly = true)
+    public List<Course> getCoursesWithAcademicPeriods() {
+        return courseRepository.findAll().stream()
+                .filter(course -> academicPeriodRepository.existsByCourseId(course.getId()))
+                .collect(Collectors.toList());
+    }
+
+    // Actualizar Curso
     @Transactional
     public Course updateCourse(Long id, CourseRequestDTO request, String adminEmail) {
         Course existingCourse = courseRepository.findById(id)
@@ -100,7 +108,7 @@ public class CourseService {
         return updatedCourse;
     }
 
-    // Eliminar Curso - NEW METHOD
+    // Eliminar Curso
     @Transactional
     public void deleteCourse(Long id, String adminEmail) {
         Course course = courseRepository.findById(id)

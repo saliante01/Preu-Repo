@@ -55,4 +55,11 @@ public class CourseController {
         courseService.deleteCourse(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
+
+    // GET: Ver cursos que tienen periodos académicos asociados - NEW ENDPOINT
+    @GetMapping("/in-academic-periods")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Course>> getCoursesInAcademicPeriods() {
+        return ResponseEntity.ok(courseService.getCoursesWithAcademicPeriods());
+    }
 }
