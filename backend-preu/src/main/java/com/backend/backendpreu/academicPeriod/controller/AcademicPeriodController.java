@@ -88,6 +88,13 @@ public class AcademicPeriodController {
         return ResponseEntity.ok(academicPeriodService.getPeriodsByCourse(courseId));
     }
 
+    // NUEVO ENDPOINT: Obtener participantes de un período académico
+    @GetMapping("/{periodId}/participants")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')") // Admins y Profesores pueden ver los participantes
+    public ResponseEntity<List<com.backend.backendpreu.courses.dto.CourseParticipantDTO>> getPeriodParticipants(@PathVariable Long periodId) {
+        return ResponseEntity.ok(academicPeriodService.getParticipants(periodId));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePeriod(@PathVariable Long id, Authentication authentication) {
