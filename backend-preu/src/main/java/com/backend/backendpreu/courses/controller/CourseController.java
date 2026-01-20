@@ -62,4 +62,10 @@ public class CourseController {
     public ResponseEntity<List<Course>> getCoursesInAcademicPeriods() {
         return ResponseEntity.ok(courseService.getCoursesWithAcademicPeriods());
     }
+    //GET: Ver cursos que no tiene periodos académicos asociados - NEW ENDPOINT
+    @GetMapping("/without-academic-periods")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Course>> getCoursesWithoutAcademicPeriods() {
+        return ResponseEntity.ok(courseService.getCoursesWithoutAcademicPeriods());
+    }
 }

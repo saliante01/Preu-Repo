@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +70,13 @@ public class CourseService {
     public List<Course> getCoursesWithAcademicPeriods() {
         return courseRepository.findAll().stream()
                 .filter(course -> academicPeriodRepository.existsByCourseId(course.getId()))
+                .collect(Collectors.toList());
+    }
+    //Obtener Cursos sin Períodos Académicos Asociados - NEW METHOD
+    @Transactional(readOnly = true)
+    public List<Course> getCoursesWithoutAcademicPeriods() {
+        return courseRepository.findAll().stream()
+                .filter(course -> !academicPeriodRepository.existsByCourseId(course.getId()))
                 .collect(Collectors.toList());
     }
 
@@ -132,4 +140,5 @@ public class CourseService {
                 "Eliminó curso base: " + course.getName() + " (" + course.getCode() + ")"
         );
     }
+
 }
