@@ -1,5 +1,6 @@
 package com.backend.backendpreu.courses.dto;
 
+import ch.qos.logback.core.status.Status;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,4 +11,5 @@ public class CourseParticipantDTO {
     private String fullName;
     private String email;
     private String role; // Devolverá "MAIN_PROFESSOR" o "STUDENT"
+    private Status status;
 }
