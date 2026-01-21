@@ -25,4 +25,14 @@ public class EnrollmentController {
 
         return ResponseEntity.ok("Usuario inscrito exitosamente.");
     }
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> unenrollUser(
+            @RequestParam Long academicPeriodId,
+            @RequestParam Long userId,
+            Authentication authentication
+    ) {
+        enrollmentService.unenrollUser(academicPeriodId, userId, authentication.getName());
+        return ResponseEntity.noContent().build(); // Retorna 204 (Éxito sin contenido)
+    }
 }

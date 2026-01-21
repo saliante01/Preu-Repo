@@ -46,7 +46,9 @@ public class Course {
      */
     @Column(length = 500)
     private String description;
-
+    @Enumerated(EnumType.STRING)
+    @Column(name= "subject",nullable = false)
+    private Subject subject;
     /**
      * Timestamp indicating when the course was created.
      */

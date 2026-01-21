@@ -1,5 +1,6 @@
 package com.backend.backendpreu.users.model;
 
+import com.backend.backendpreu.courses.model.Subject;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -98,7 +99,8 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name="user_id")
     )
     @Column(name="subject_name")
-    private Set<String> subjects = new HashSet<>();
+    @Enumerated(EnumType.STRING) // Guardamos el nombre del ENUM (ej: "MATHEMATICS")
+    private Set<Subject> subjects = new HashSet<>();
     /**
      * Automatically sets creation and update timestamps
      * when the entity is first persisted.

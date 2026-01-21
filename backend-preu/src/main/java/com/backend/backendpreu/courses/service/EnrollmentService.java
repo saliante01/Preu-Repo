@@ -90,4 +90,27 @@ public class EnrollmentService {
                 detailMessage
         );
     }
+    @Transactional
+    public void unenrollUser(Long academicPeriodId, Long userId, String adminEmail) {
+        // 1. Verificar Admin (Para auditoría)
+        User adminUser = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Admin no encontrado"));
+
+        // 2. Buscar la inscripción específica (Validar que exista)
+        // Nota: Asumimos que tu Repository tiene este método estándar. Si falla, avísame.
+        CourseParticipation participation = participationRepository.findByAcademicPeriodIdAndUserId(academicPeriodId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La inscripción no existe para este usuario en este periodo."));
+
+        // 3. Eliminar
+        participationRepository.delete(participation);
+
+        // 4. Auditoría
+        auditLogService.log(
+                adminUser,
+                "UNENROLL_USER",
+                "COURSE_PARTICIPATION",
+                participation.getId(),
+                "Eliminó inscripción de: " + participation.getUser().getEmail() + " (Rol: " + participation.getRole() + ")"
+        );
+}
 }

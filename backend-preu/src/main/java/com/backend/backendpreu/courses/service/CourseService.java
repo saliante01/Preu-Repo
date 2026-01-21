@@ -47,7 +47,7 @@ public class CourseService {
         newCourse.setName(request.getName());
         newCourse.setCode(request.getCode());
         newCourse.setDescription(request.getDescription());
-
+        newCourse.setSubject(request.getSubject());
         Course savedCourse = courseRepository.save(newCourse);
 
         // 3. Registrar Auditoría
@@ -99,7 +99,7 @@ public class CourseService {
         existingCourse.setName(request.getName());
         existingCourse.setCode(request.getCode());
         existingCourse.setDescription(request.getDescription());
-
+        existingCourse.setSubject(request.getSubject());
         Course updatedCourse = courseRepository.save(existingCourse);
 
         User admin = userRepository.findByEmail(adminEmail)

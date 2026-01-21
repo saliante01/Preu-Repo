@@ -1,6 +1,7 @@
 package com.backend.backendpreu.courses.controller;
 import com.backend.backendpreu.courses.dto.CourseRequestDTO;
 import com.backend.backendpreu.courses.model.Course;
+import com.backend.backendpreu.courses.model.Subject;
 import com.backend.backendpreu.courses.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -67,5 +69,11 @@ public class CourseController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Course>> getCoursesWithoutAcademicPeriods() {
         return ResponseEntity.ok(courseService.getCoursesWithoutAcademicPeriods());
+    }
+    //GET: Ver todos los subjects
+    @GetMapping("/subjects")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Subject>> getAllSubjects() {
+        return ResponseEntity.ok(Arrays.asList(Subject.values()));
     }
 }
