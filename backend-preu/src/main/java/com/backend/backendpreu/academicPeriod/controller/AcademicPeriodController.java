@@ -95,6 +95,16 @@ public class AcademicPeriodController {
         return ResponseEntity.ok(academicPeriodService.getParticipants(periodId));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AcademicPeriod> updatePeriod(
+            @PathVariable Long id,
+            @RequestBody AcademicPeriodCreateDTO request,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(academicPeriodService.updatePeriod(id, request, authentication.getName()));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePeriod(@PathVariable Long id, Authentication authentication) {
