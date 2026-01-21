@@ -6,6 +6,7 @@ import com.backend.backendpreu.academicPaticipation.model.ParticipationStatus;
 import com.backend.backendpreu.academicPaticipation.repository.CourseParticipationRepository;
 import com.backend.backendpreu.academicPeriod.model.AcademicPeriod;
 import com.backend.backendpreu.academicPeriod.model.ClassSchedule;
+import com.backend.backendpreu.courses.model.Subject;
 import com.backend.backendpreu.users.dto.AvailableTeacherDTO;
 import com.backend.backendpreu.users.dto.TeacherDashboardDTO;
 import com.backend.backendpreu.users.model.Role;
@@ -83,7 +84,7 @@ public class TeacherDashboardService {
                 .build();
     }
 
-    public List<AvailableTeacherDTO> findAvailableTeachers(String subject, int maxHours) {
+    public List<AvailableTeacherDTO> findAvailableTeachers(Subject subject, int maxHours) {
         // 1. Traer todos los profes
         List<User> allTeachers = userRepository.findByRole(Role.PROFESSOR);
         List<AvailableTeacherDTO> result = new ArrayList<>();

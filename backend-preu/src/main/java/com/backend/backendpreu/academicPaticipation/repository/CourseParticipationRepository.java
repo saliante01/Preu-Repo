@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CourseParticipationRepository extends JpaRepository<CourseParticipation, Long> {
@@ -19,7 +20,6 @@ public interface CourseParticipationRepository extends JpaRepository<CourseParti
 
     List<CourseParticipation> findByUserId(Long userId);
 
-    // 👇 AGREGA ESTA LÍNEA PARA SOLUCIONAR EL ERROR 👇
     List<CourseParticipation> findAllByUserIdAndRoleAndStatus(Long userId, CourseRole role, ParticipationStatus status);
     
     Integer countByAcademicPeriodIdAndRole(Long academicPeriodId, CourseRole role);
@@ -31,4 +31,6 @@ public interface CourseParticipationRepository extends JpaRepository<CourseParti
             "WHERE p.user.id = :userId " +
             "ORDER BY st.startDate DESC")
     List<CourseParticipation> findFullHistoryByUserId(@Param("userId") Long userId);
+
+    Optional<CourseParticipation> findByAcademicPeriodIdAndUserId(Long academicPeriodId, Long userId);
 }
