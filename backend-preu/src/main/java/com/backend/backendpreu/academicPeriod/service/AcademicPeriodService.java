@@ -165,15 +165,15 @@ public class AcademicPeriodService {
         AcademicPeriod period = academicPeriodRepository.findById(periodId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Periodo no encontrado"));
 
-        // Seguridad: No borrar si hay participantes (alumnos o profesores)
-        Integer enrollmentCount = participationRepository.countByAcademicPeriodIdAndStatus(
+        // Seguridad: No borrar si hay alumnos
+        Integer enrollmentCount = participationRepository.countByAcademicPeriodIdAndRole(
                 periodId,
-                ParticipationStatus.ACTIVE
+                CourseRole.STUDENT
         );
 
         if (enrollmentCount > 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "No se puede eliminar: Hay " + enrollmentCount + " participantes activos. Dales de baja primero.");
+                    "No se puede eliminar: Hay " + enrollmentCount + " alumnos inscritos. Dales de baja primero.");
         }
 
         academicPeriodRepository.delete(period);
@@ -269,10 +269,9 @@ public class AcademicPeriodService {
 
     // --- MAPPER AUXILIAR (Mejorado para visualización) ---
     private AcademicPeriodSummaryDTO mapToDTO(AcademicPeriod period) {
-        // Ahora contamos todos los participantes ACTIVO (Estudiantes y Profesores)
-        Integer currentCount = participationRepository.countByAcademicPeriodIdAndStatus(
+        Integer currentCount = participationRepository.countByAcademicPeriodIdAndRole(
                 period.getId(),
-                ParticipationStatus.ACTIVE
+                CourseRole.STUDENT
         );
 
         // Lógica de visualización del horario (Para que el Admin sepa qué borrar)

@@ -19,9 +19,7 @@ public interface CourseParticipationRepository extends JpaRepository<CourseParti
 
     List<CourseParticipation> findByUserId(Long userId);
 
-    // Cuenta todos los participantes activos (estudiantes y profesores)
-    Integer countByAcademicPeriodIdAndStatus(Long academicPeriodId, ParticipationStatus status);
-
+    // 👇 AGREGA ESTA LÍNEA PARA SOLUCIONAR EL ERROR 👇
     List<CourseParticipation> findAllByUserIdAndRoleAndStatus(Long userId, CourseRole role, ParticipationStatus status);
     
     Integer countByAcademicPeriodIdAndRole(Long academicPeriodId, CourseRole role);
