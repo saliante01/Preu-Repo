@@ -21,7 +21,17 @@ public interface CourseParticipationRepository extends JpaRepository<CourseParti
     List<CourseParticipation> findByUserId(Long userId);
 
     List<CourseParticipation> findAllByUserIdAndRoleAndStatus(Long userId, CourseRole role, ParticipationStatus status);
-    
+
+    @Query("SELECT p FROM CourseParticipation p " +
+            "WHERE p.user.id = :userId " +
+            "AND p.role IN :roles " +
+            "AND p.status = :status")
+    List<CourseParticipation> findAllByUserIdAndRolesInAndStatus(
+            @Param("userId") Long userId,
+            @Param("roles") java.util.Collection<CourseRole> roles,
+            @Param("status") ParticipationStatus status
+    );
+
     Integer countByAcademicPeriodIdAndRole(Long academicPeriodId, CourseRole role);
 
     @Query("SELECT p FROM CourseParticipation p " +

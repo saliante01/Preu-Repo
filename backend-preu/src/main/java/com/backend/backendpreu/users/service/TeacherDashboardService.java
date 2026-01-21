@@ -41,7 +41,11 @@ public class TeacherDashboardService {
         // 2. Buscar cursos ACTIVOS donde este usuario sea MAIN_PROFESSOR
         // (Nota: Debes crear este método en tu ParticipationRepository si no existe, o usar uno genérico)
         List<CourseParticipation> activeParticipations = participationRepository
-                .findAllByUserIdAndRoleAndStatus(teacher.getId(), CourseRole.MAIN_PROFESSOR, ParticipationStatus.ACTIVE);
+                .findAllByUserIdAndRolesInAndStatus(
+                        teacher.getId(),
+                        List.of(CourseRole.MAIN_PROFESSOR, CourseRole.SUBSTITUTE_PROFESSOR),
+                        ParticipationStatus.ACTIVE
+                );
 
         long totalHours = 0;
         List<TeacherDashboardDTO.AssignedCourseInfo> courseInfos = new ArrayList<>();
@@ -97,7 +101,11 @@ public class TeacherDashboardService {
 
             // Filtro 2: Calcular carga actual (Reusamos lógica interna o simplificamos)
             List<CourseParticipation> active = participationRepository
-                    .findAllByUserIdAndRoleAndStatus(teacher.getId(), CourseRole.MAIN_PROFESSOR, ParticipationStatus.ACTIVE);
+                    .findAllByUserIdAndRolesInAndStatus(
+                            teacher.getId(),
+                            List.of(CourseRole.MAIN_PROFESSOR, CourseRole.SUBSTITUTE_PROFESSOR),
+                            ParticipationStatus.ACTIVE
+                    );
 
             long hours = 0;
             for(CourseParticipation p : active) {
