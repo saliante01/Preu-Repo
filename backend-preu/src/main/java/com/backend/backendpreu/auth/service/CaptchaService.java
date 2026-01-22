@@ -9,28 +9,47 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+/**
+ * Service class for verifying Google reCAPTCHA tokens.
+ * Communicates with the Google reCAPTCHA API to validate user responses,
+ * helping to protect against bots and automated attacks.
+ */
 @Service
 @RequiredArgsConstructor
-@Slf4j // Agregamos logs para ver qué pasa
+@Slf4j
 public class CaptchaService {
 
+    /**
+     * The secret key for Google reCAPTCHA, loaded from application properties.
+     */
     @Value("${google.recaptcha.secret}")
     private String recaptchaSecret;
 
+    /**
+     * The URL for the Google reCAPTCHA verification endpoint, loaded from application properties.
+     */
     @Value("${google.recaptcha.verify-url}")
     private String recaptchaVerifyUrl;
 
     private final RestTemplate restTemplate;
 
+    /**
+     * Verifies a reCAPTCHA token by sending it to Google's verification service.
+     * Includes a bypass for testing environments using a "PRUEBA" token.
+     *
+     * @param token The reCAPTCHA token received from the client-side.
+     * @return {@code true} if the token is successfully verified by Google (or the bypass is active), {@code false} otherwise.
+     */
     public boolean verify(String token) {
 
+        // BYPASS for testing purposes. Should be removed or secured in production.
         if ("PRUEBA".equals(token)) {
-            log.warn("BYPASS DE CAPTCHA DETECTADO: Usando token de prueba.");
+            log.warn("CAPTCHA BYPASS DETECTED: Using test token.");
             return true;
         }
 
         if (token == null || token.isBlank()) {
-            log.error("Captcha token vacío o nulo.");
+            log.error("Captcha token is empty or null.");
             return false;
         }
 
@@ -39,7 +58,7 @@ public class CaptchaService {
         params.add("response", token);
 
         try {
-
+            // Make a POST request to the Google reCAPTCHA verification URL
             CaptchaResponse apiResponse = restTemplate.postForObject(
                     recaptchaVerifyUrl,
                     params,
@@ -47,15 +66,15 @@ public class CaptchaService {
             );
 
             if (apiResponse != null && apiResponse.isSuccess()) {
-                log.info("Captcha verificado exitosamente con Google.");
+                log.info("Captcha successfully verified with Google.");
                 return true;
             } else {
-                log.warn("Google rechazó el captcha. Respuesta: {}", apiResponse);
+                log.warn("Google rejected the captcha. Response: {}", apiResponse);
                 return false;
             }
 
         } catch (Exception e) {
-            log.error("Error al conectar con Google Recaptcha", e);
+            log.error("Error connecting to Google Recaptcha", e);
             return false;
         }
     }

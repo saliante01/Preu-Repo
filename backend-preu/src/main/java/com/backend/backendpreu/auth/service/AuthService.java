@@ -11,11 +11,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Service class for handling user authentication operations.
+ * Manages user login, JWT generation, and retrieval of authenticated user details.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -26,22 +30,32 @@ public class AuthService {
     private final AuditLogService auditLogService;
     private final CaptchaService captchaService;
 
+    /**
+     * Authenticates a user based on their email, password, and a reCAPTCHA token.
+     * On successful authentication, a JWT is generated and an audit log is recorded.
+     *
+     * @param request The {@link LoginRequestDTO} containing the user's login credentials and captcha token.
+     * @return An {@link AuthResponseDTO} containing the user's ID, email, full name, role, and the generated JWT.
+     * @throws RuntimeException If the captcha is invalid or expired.
+     * @throws ResponseStatusException If the email or password is incorrect, or if the user account is inactive.
+     */
+    @Transactional
     public AuthResponseDTO login(LoginRequestDTO request){
 
         boolean isHuman = captchaService.verify(request.getCaptchaToken());
         if (!isHuman) {
-            throw new RuntimeException("Captcha inválido o expirado. ¿Eres un robot?");
+            throw new RuntimeException("Invalid or expired captcha. Are you a robot?");
         }
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
         if (!user.getActive()) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
-                    "Tu cuenta está desactivada. Contacta a administración."
+                    "Your account is deactivated. Contact administration."
             );
         }
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email o contraseña incorrectos");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
         }
         String token = jwtService.generateToken(user);
 
@@ -50,7 +64,7 @@ public class AuthService {
                 "LOGIN",
                 "USER",
                 user.getId(),
-                "Inicio de sesión exitoso vía Email/Password"
+                "Successful login via Email/Password"
 
         );
         return AuthResponseDTO.builder()
@@ -62,6 +76,13 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * Retrieves a summary of the currently authenticated user from the SecurityContext.
+     *
+     * @return A {@link UserSummaryDTO} containing basic details of the authenticated user.
+     * @throws ResponseStatusException If no user is authenticated or the authenticated user is not found in the repository.
+     */
+    @Transactional(readOnly = true)
     public UserSummaryDTO getAuthenticatedUser() {
 
         Authentication authentication =
