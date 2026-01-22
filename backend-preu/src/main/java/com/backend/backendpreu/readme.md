@@ -13,6 +13,19 @@ src/
 │   ├── database/
 │   │   └── DatabaseConfig.java
 │   └── AppConfig.java
+├──academicperiod/
+├── model/
+│   ├── AcademicPeriod.java
+│   └── AcademicPeriodStatus.java
+│
+├── repository/
+│   └── AcademicPeriodRepository.java
+│
+├── service/
+│   └── AcademicPeriodService.java
+│
+└── controller/
+└── AcademicPeriodController.java
 │
 ├── auth/
 │   ├── controller/
