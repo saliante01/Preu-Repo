@@ -6,11 +6,16 @@ import com.backend.backendpreu.audit.repository.AuditLogRepository;
 import com.backend.backendpreu.users.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Service class for managing audit logs.
+ * Provides functionality to record and retrieve system actions for auditing purposes.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuditLogService {
@@ -18,13 +23,15 @@ public class AuditLogService {
     private final AuditLogRepository auditLogRepository;
 
     /**
-     * Registra una acción en el sistema.
-     * @param actor El usuario que realiza la acción.
-     * @param action El código de la acción (ej: CREATE_USER).
-     * @param entityName El nombre de la entidad afectada (ej: USER).
-     * @param entityId El ID de la entidad afectada.
-     * @param details Descripción legible de lo que ocurrió.
+     * Records an action performed within the system.
+     *
+     * @param actor The {@link User} who performed the action.
+     * @param action The code representing the action (e.g., "CREATE_USER", "LOGIN").
+     * @param entityName The name of the entity affected by the action (e.g., "USER", "COURSE").
+     * @param entityId The ID of the affected entity.
+     * @param details A human-readable description of what occurred.
      */
+    @Transactional
     public void log(User actor, String action, String entityName, Long entityId, String details) {
 
         AuditLog auditLog = AuditLog.builder()
@@ -32,19 +39,27 @@ public class AuditLogService {
                 .action(action)
                 .entityName(entityName)
                 .entityId(entityId)
-                .details(details) // Guardamos el detalle
+                .details(details)
                 .timestamp(LocalDateTime.now())
                 .build();
 
         auditLogRepository.save(auditLog);
     }
 
+    /**
+     * Retrieves a list of audit logs, with optional filtering by user ID, action, and entity name.
+     * The results are mapped to {@link AuditLogResponseDTO}.
+     *
+     * @param userId The ID of the user (actor) to filter by. Can be {@code null}.
+     * @param action The action code to filter by. Can be {@code null}.
+     * @param entityName The entity name to filter by. Can be {@code null}.
+     * @return A list of {@link AuditLogResponseDTO} representing the filtered audit logs.
+     */
+    @Transactional(readOnly = true)
     public List<AuditLogResponseDTO> getAuditLogs(Long userId, String action, String entityName) {
 
-        // Llamamos al repo con los filtros
         List<AuditLog> logs = auditLogRepository.searchAuditLogs(userId, action, entityName);
 
-        // Convertimos Entidad -> DTO
         return logs.stream()
                 .map(log -> AuditLogResponseDTO.builder()
                         .id(log.getId())
