@@ -32,10 +32,11 @@ public class ClassSchedule {
     private LocalTime endTime;
 
     // Campo calculado para saber duración en horas (útil para el Dashboard)
-    public long getDurationInHours() {
+    public double getDurationInHours() {
         if (startTime != null && endTime != null) {
-            return java.time.Duration.between(startTime, endTime).toHours();
+            long minutes = java.time.Duration.between(startTime, endTime).toMinutes();
+            return minutes / 60.0; // División decimal (Ej: 90 / 60.0 = 1.5)
         }
-        return 0;
+        return 0.0;
     }
 }

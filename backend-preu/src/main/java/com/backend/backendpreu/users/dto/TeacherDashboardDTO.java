@@ -15,7 +15,7 @@ public class TeacherDashboardDTO {
     private String email;
     private Set<Subject> subjects; //Que sabe enseñas el profesor
     private List<AssignedCourseInfo> activeCourses;
-    private Long totalWeeklyHours; //Carga horaria total
+    private Double totalWeeklyHours; //Carga horaria total
     private String workloadStatus; //"Libre,Normal,sonbrecarga
 
     @Data

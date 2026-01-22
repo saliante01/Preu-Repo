@@ -8,6 +8,6 @@ import lombok.Data;
 public class AvailableTeacherDTO {
     private Long id;
     private String fullName;
-    private long currentHours;
+    private Double currentHours;
     private String status;
 }

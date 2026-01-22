@@ -223,6 +223,9 @@ public class AcademicPeriodService {
 
         period.setStatus(AcademicPeriodStatus.CLOSURE_PENDING);
         academicPeriodRepository.save(period);
+
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        auditLogService.log(user,"REQUEST_CLOSURE","ACADEMIC_PERIOD",periodId,"Solicitó el cierre del cursi");
     }
 
     @Transactional
@@ -232,9 +235,10 @@ public class AcademicPeriodService {
 
         period.setStatus(AcademicPeriodStatus.FINISHED);
         academicPeriodRepository.save(period);
+        User admin = userRepository.findByEmail(adminEmail).orElseThrow();
+        auditLogService.log(admin,"ClOSE_PERIOD","ACADEMIC_PERIOD",periodId,"Aprobó el cierre y finalizó el curso");
     }
 
-    // --- LISTAS ---
     @Transactional(readOnly = true)
     public List<AcademicPeriodSummaryDTO> getPeriodsByTerm(Long termId) {
         if (!schoolTermRepository.existsById(termId)) {
