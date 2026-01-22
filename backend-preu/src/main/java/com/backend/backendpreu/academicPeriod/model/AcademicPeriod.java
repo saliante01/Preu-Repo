@@ -32,19 +32,24 @@ public class AcademicPeriod {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     /**
-     * Base course associated with this academic period.
+     * The maximum number of students allowed in this academic period.
      */
     @Column(name = "max_capacity", nullable = false)
     private Integer maxCapacity;
 
+    /**
+     * Base course associated with this academic period.
+     */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
+    /**
+     * School term to which this academic period belongs.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "term_id") // Nueva columna
+    @JoinColumn(name = "term_id")
     private SchoolTerm schoolTerm;
     /**
      * Start date of the academic period.
@@ -71,6 +76,10 @@ public class AcademicPeriod {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    /**
+     * The class schedule for this academic period.
+     * CascadeType.ALL ensures that if an AcademicPeriod is deleted, its schedule is also deleted.
+     */
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "schedule_id", referencedColumnName = "id")
     private ClassSchedule schedule;
@@ -84,7 +93,7 @@ public class AcademicPeriod {
      * Academic sessions (classes, reinforcement sessions) associated
      * with this academic period.
      */
-    @OneToMany(mappedBy = "academicPeriod")
+    @OneToMany(mappedBy = "academicPeriod", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Meeting> meetings;
 
     @PrePersist
