@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Service class for managing user enrollments in academic periods.
+ * Handles enrollment and unenrollment logic, including capacity validation and audit logging.
+ */
 @Service
 @RequiredArgsConstructor
 public class EnrollmentService {
@@ -25,44 +29,54 @@ public class EnrollmentService {
     private final AcademicPeriodRepository academicPeriodRepository;
     private final AuditLogService auditLogService;
 
+    /**
+     * Enrolls a user in a specific academic period.
+     * Validates for duplicate enrollments, checks course capacity, and allows forced enrollment.
+     * Logs the enrollment action.
+     *
+     * @param request The {@link EnrollmentRequestDTO} containing user, academic period, role, and force enrollment flag.
+     * @param adminEmail The email of the administrator performing the action for auditing.
+     * @throws ResponseStatusException if the admin, user, or academic period is not found,
+     *                                 if the user is already enrolled, or if the course is full and forceEnroll is false.
+     */
     @Transactional
     public void enrollUser(EnrollmentRequestDTO request, String adminEmail) {
-        // 1. Buscar al Admin (Auditoría)
+        // 1. Find Admin (for Audit)
         User adminUser = userRepository.findByEmail(adminEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Admin no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Admin not found"));
 
-        // 2. Buscar al Usuario a inscribir
+        // 2. Find User to enroll
         User userToEnroll = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        // 3. Buscar el Curso
+        // 3. Find Academic Period
         AcademicPeriod period = academicPeriodRepository.findById(request.getAcademicPeriodId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Periodo Académico no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Academic Period not found"));
 
-        // 4. Validar DUPLICADOS
+        // 4. Validate Duplicates
         boolean exists = participationRepository.existsByAcademicPeriodIdAndUserId(period.getId(), userToEnroll.getId());
         if (exists) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario ya está inscrito en este curso.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already enrolled in this course.");
         }
 
-        // 5. 👇 VALIDACIÓN DE CUPOS Y SOBRECUPO (Lógica Nueva)
+        // 5. 👇 CAPACITY AND OVER-ENROLLMENT VALIDATION (New Logic)
         Integer currentStudents = participationRepository.countByAcademicPeriodIdAndRole(
                 period.getId(),
                 CourseRole.STUDENT
         );
 
-        // Verificamos si está lleno (o sobrepasado)
+        // Check if full (or over capacity)
         if (currentStudents >= period.getMaxCapacity()) {
-            // Si NO viene la orden de forzar, lanzamos error
+            // If force enrollment is NOT requested, throw an error
             if (!request.isForceEnroll()) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "El curso está lleno (" + currentStudents + "/" + period.getMaxCapacity() + "). " +
-                                "Se requiere autorización de sobrecupo (forceEnroll=true).");
+                        "The course is full (" + currentStudents + "/" + period.getMaxCapacity() + "). " +
+                                "Over-enrollment authorization is required (forceEnroll=true).");
             }
-            // Si viene forceEnroll = true, el código continúa y permite la inscripción (Silla extra)
+            // If forceEnroll = true, the code continues and allows enrollment (Extra seat)
         }
 
-        // 6. Crear Inscripción
+        // 6. Create Enrollment
         CourseParticipation participation = CourseParticipation.builder()
                 .user(userToEnroll)
                 .academicPeriod(period)
@@ -72,14 +86,14 @@ public class EnrollmentService {
 
         participationRepository.save(participation);
 
-        // 7. Auditoría (Indicamos si fue forzado)
-        String statusMsg = request.isForceEnroll() ? " (SOBRECUPO AUTORIZADO)" : "";
+        // 7. Audit (Indicate if forced)
+        String statusMsg = request.isForceEnroll() ? " (OVER-ENROLLMENT AUTHORIZED)" : "";
 
-        String detailMessage = String.format("Inscripción creada%s: %s en curso ID %d (%d/%d)",
+        String detailMessage = String.format("Enrollment created%s: %s in course ID %d (%d/%d)",
                 statusMsg,
                 userToEnroll.getEmail(),
                 period.getId(),
-                currentStudents + 1, // Nuevo total estimado
+                currentStudents + 1, // Estimated new total
                 period.getMaxCapacity());
 
         auditLogService.log(
@@ -90,27 +104,36 @@ public class EnrollmentService {
                 detailMessage
         );
     }
+
+    /**
+     * Unenrolls a user from a specific academic period.
+     * Logs the unenrollment action.
+     *
+     * @param academicPeriodId The ID of the academic period from which to unenroll the user.
+     * @param userId The ID of the user to unenroll.
+     * @param adminEmail The email of the administrator performing the action for auditing.
+     * @throws ResponseStatusException if the admin or the specific enrollment is not found.
+     */
     @Transactional
     public void unenrollUser(Long academicPeriodId, Long userId, String adminEmail) {
-        // 1. Verificar Admin (Para auditoría)
+        // 1. Verify Admin (for audit)
         User adminUser = userRepository.findByEmail(adminEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Admin no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Admin not found"));
 
-        // 2. Buscar la inscripción específica (Validar que exista)
-        // Nota: Asumimos que tu Repository tiene este método estándar. Si falla, avísame.
+        // 2. Find the specific enrollment (Validate existence)
         CourseParticipation participation = participationRepository.findByAcademicPeriodIdAndUserId(academicPeriodId, userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La inscripción no existe para este usuario en este periodo."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Enrollment does not exist for this user in this period."));
 
-        // 3. Eliminar
+        // 3. Delete
         participationRepository.delete(participation);
 
-        // 4. Auditoría
+        // 4. Audit
         auditLogService.log(
                 adminUser,
                 "UNENROLL_USER",
                 "COURSE_PARTICIPATION",
                 participation.getId(),
-                "Eliminó inscripción de: " + participation.getUser().getEmail() + " (Rol: " + participation.getRole() + ")"
+                "Unenrolled user: " + participation.getUser().getEmail() + " (Role: " + participation.getRole() + ")"
         );
-}
+    }
 }

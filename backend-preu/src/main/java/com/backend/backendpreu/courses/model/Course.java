@@ -30,13 +30,13 @@ public class Course {
     private Long id;
 
     /**
-     * Internal course code.
+     * Internal course code. Must be unique.
      */
     @Column(nullable = false, length = 50)
     private String code;
 
     /**
-     * Course name.
+     * Course name. Must be unique.
      */
     @Column(nullable = false, length = 100)
     private String name;
@@ -46,27 +46,38 @@ public class Course {
      */
     @Column(length = 500)
     private String description;
+    /**
+     * The subject category of the course.
+     */
     @Enumerated(EnumType.STRING)
     @Column(name= "subject",nullable = false)
     private Subject subject;
     /**
-     * Timestamp indicating when the course was created.
+     * Timestamp indicating when the course was created. Automatically set on creation.
      */
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     /**
-     * Timestamp indicating the last update of the course.
+     * Timestamp indicating the last update of the course. Automatically updated on modification.
      */
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    /**
+     * Lifecycle callback method executed before the entity is persisted.
+     * Sets the {@code createdAt} and {@code updatedAt} timestamps.
+     */
     @PrePersist
     protected void onCreate() {
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
     }
 
+    /**
+     * Lifecycle callback method executed before the entity is updated.
+     * Updates the {@code updatedAt} timestamp.
+     */
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = OffsetDateTime.now();

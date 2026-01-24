@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * REST controller for managing base courses.
+ * Provides endpoints for administrative operations on courses.
+ */
 @RestController
 @RequestMapping("/api/admin/courses")
 @RequiredArgsConstructor
@@ -19,14 +23,26 @@ public class CourseController {
 
     private final CourseService courseService;
 
-    // GET: Ver todo el catálogo
+    /**
+     * Retrieves all available courses in the catalog.
+     * Accessible only by users with 'ADMIN' role.
+     *
+     * @return A {@link ResponseEntity} containing a list of all {@link Course} objects.
+     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Course>> getAllCourses() {
         return ResponseEntity.ok(courseService.getAllCourses());
     }
 
-    // POST: Crear nuevo curso base
+    /**
+     * Creates a new base course.
+     * Accessible only by users with 'ADMIN' role.
+     *
+     * @param request The {@link CourseRequestDTO} containing the details of the new course.
+     * @param authentication The Spring Security {@link Authentication} object of the current user.
+     * @return A {@link ResponseEntity} containing the newly created {@link Course}.
+     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Course> createCourse(
@@ -36,7 +52,15 @@ public class CourseController {
         return ResponseEntity.ok(courseService.createCourse(request, authentication.getName()));
     }
 
-    // PUT: Actualizar curso base - NEW ENDPOINT
+    /**
+     * Updates an existing base course identified by its ID.
+     * Accessible only by users with 'ADMIN' role.
+     *
+     * @param id The ID of the course to update.
+     * @param request The {@link CourseRequestDTO} containing the updated details.
+     * @param authentication The Spring Security {@link Authentication} object of the current user.
+     * @return A {@link ResponseEntity} containing the updated {@link Course}.
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Course> updateCourse(
@@ -47,7 +71,14 @@ public class CourseController {
         return ResponseEntity.ok(courseService.updateCourse(id, request, authentication.getName()));
     }
 
-    // DELETE: Eliminar curso base - NEW ENDPOINT
+    /**
+     * Deletes a base course identified by its ID.
+     * Accessible only by users with 'ADMIN' role.
+     *
+     * @param id The ID of the course to delete.
+     * @param authentication The Spring Security {@link Authentication} object of the current user.
+     * @return A {@link ResponseEntity} with no content if the deletion is successful.
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCourse(
@@ -58,19 +89,36 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
-    // GET: Ver cursos que tienen periodos académicos asociados - NEW ENDPOINT
+    /**
+     * Retrieves a list of courses that currently have associated academic periods.
+     * Accessible only by users with 'ADMIN' role.
+     *
+     * @return A {@link ResponseEntity} containing a list of {@link Course} objects with academic periods.
+     */
     @GetMapping("/in-academic-periods")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Course>> getCoursesInAcademicPeriods() {
         return ResponseEntity.ok(courseService.getCoursesWithAcademicPeriods());
     }
-    //GET: Ver cursos que no tiene periodos académicos asociados - NEW ENDPOINT
+
+    /**
+     * Retrieves a list of courses that do not currently have associated academic periods.
+     * Accessible only by users with 'ADMIN' role.
+     *
+     * @return A {@link ResponseEntity} containing a list of {@link Course} objects without academic periods.
+     */
     @GetMapping("/without-academic-periods")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Course>> getCoursesWithoutAcademicPeriods() {
         return ResponseEntity.ok(courseService.getCoursesWithoutAcademicPeriods());
     }
-    //GET: Ver todos los subjects
+
+    /**
+     * Retrieves a list of all available subjects.
+     * Accessible only by users with 'ADMIN' role.
+     *
+     * @return A {@link ResponseEntity} containing a list of all {@link Subject} enum values.
+     */
     @GetMapping("/subjects")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Subject>> getAllSubjects() {

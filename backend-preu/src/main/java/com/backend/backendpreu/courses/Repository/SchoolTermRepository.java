@@ -7,24 +7,52 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for {@link SchoolTerm} entities.
+ * Provides methods for database operations on school terms.
+ */
 @Repository
 public interface SchoolTermRepository extends JpaRepository<SchoolTerm, Long> {
 
-    // --- MÉTODOS EXISTENTES (Modificados para seguridad) ---
-
-    // CAMBIO DE SEGURIDAD: De Optional a List
-    // Si tienes "2026" y "2027" activos a la vez, Optional fallaría. List lo soporta.
+    /**
+     * Finds all active school terms.
+     * Returns a list to handle multiple active terms if they exist.
+     *
+     * @return A list of active {@link SchoolTerm} entities.
+     */
     List<SchoolTerm> findByActiveTrue();
 
-    // Buscar por nombre (ej: "2025-1")
+    /**
+     * Finds a school term by its name.
+     *
+     * @param name The name of the school term (e.g., "2025-1").
+     * @return An {@link Optional} containing the found {@link SchoolTerm}, or empty if not found.
+     */
     Optional<SchoolTerm> findByName(String name);
 
-    // --- NUEVOS MÉTODOS (Ticket BE-AC-01) ---
-
-    // 1. Para validar duplicados rápidamente antes de guardar
+    /**
+     * Checks if a school term with the given name already exists.
+     * Used for quick duplicate validation before saving.
+     *
+     * @param name The name to check for existence.
+     * @return true if a school term with the name exists, false otherwise.
+     */
     boolean existsByName(String name);
 
-    // 2. Para listar en el panel de Admin ordenados cronológicamente (el más nuevo primero)
+    /**
+     * Retrieves all school terms, ordered chronologically by start date in descending order (newest first).
+     *
+     * @return A list of all {@link SchoolTerm} entities, sorted by start date.
+     */
     List<SchoolTerm> findAllByOrderByStartDateDesc();
+
+    /**
+     * Checks if a school term with the given name exists, excluding the term with the specified ID.
+     * Useful for validating uniqueness during updates.
+     *
+     * @param name The name to check for existence.
+     * @param id The ID of the school term to exclude from the search.
+     * @return true if another school term with the name exists, false otherwise.
+     */
     boolean existsByNameAndIdNot(String name, Long id);
 }
