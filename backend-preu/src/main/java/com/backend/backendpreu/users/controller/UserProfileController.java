@@ -11,28 +11,58 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Controlador para gestión de perfiles de usuario.
+ *
+ * Permite:
+ * - Que un usuario vea su propio perfil
+ * - Que un ADMIN vea el perfil de cualquier usuario
+ *
+ * Ruta base:
+ * /api
+ */
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserProfileController {
 
+    /**
+     * Servicio de perfiles de usuario
+     */
     private final UserProfileService userProfileService;
-    private final UserRepository userRepository; // <--- INYECTAR REPOSITORIO
 
-    // 1. GET /api/users/me/profile
+    /**
+     * Repositorio de usuarios para resolver identidad del usuario autenticado
+     */
+    private final UserRepository userRepository;
+
+    /**
+     * Obtiene el perfil del usuario actualmente autenticado.
+     *
+     * Endpoint:
+     * GET /api/users/me/profile
+     */
     @GetMapping("/users/me/profile")
     public ResponseEntity<UserProfileDTO> getMyProfile(Authentication authentication) {
         Long currentUserId = extractIdFromAuth(authentication);
         return ResponseEntity.ok(userProfileService.getUserProfile(currentUserId));
     }
 
-    // 2. GET /api/admin/users/{userId}/profile
+    /**
+     * Obtiene el perfil de cualquier usuario (solo ADMIN).
+     *
+     * Endpoint:
+     * GET /api/admin/users/{userId}/profile
+     */
     @GetMapping("/admin/users/{userId}/profile")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserProfileDTO> getUserProfileByAdmin(@PathVariable Long userId) {
         return ResponseEntity.ok(userProfileService.getUserProfile(userId));
     }
 
+    /**
+     * Extrae el ID del usuario autenticado usando su email.
+     */
     private Long extractIdFromAuth(Authentication auth) {
         String email = auth.getName(); // Spring Security guarda el email en getName()
         return userRepository.findByEmail(email)
